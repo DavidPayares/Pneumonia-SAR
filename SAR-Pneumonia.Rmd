@@ -1,0 +1,194 @@
+---
+title: "Penumonia SAR Models"
+output:
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+    number_sections: true
+---
+
+This is a reproducible example of the paper [Pneumonia Sar](). In this research, we perform a spatial autorregresive model analysis to measure the spatial influence of socio-economic, enviromental, behavioural and healthcare factors in pneumonia mortality rates. 
+
+# Getting Started
+
+## Packages
+
+First, we will load the packages needed for processing and analyzing our data.
+
+```{r}
+# Omitting warmings (be carefull)
+options(warn = -1)
+
+# Packages
+packages <- c('lmtest','RColorBrewer','classInt','spdep','TeachingDemos','shapefiles','sp','maptools',
+             'scatterplot3d','geoR','spatial','fBasics','car','aplpack','RODBC','ggplot2','spgrass6',
+             'adespatial','RANN','ade4','olsrr','rgeos','rgdal','spdep','spgwr','GWmodel','nnet','olsrr',
+             'stats','classInt','gridExtra','lmtest','car','MASS','caret','glmnet')
+```
+
+For loading and/or installing the packages, you can run the following command. The packages that are installed in your machine will be automatically loaded. Those that are not installed will be installed and loaded to your R session. Remember to provide permits if linux is used.
+
+```{r, results=FALSE}
+# Permits
+#Sys.setenv(R_INSTALL_STAGED = FALSE)
+
+# Load packages
+for(p in packages){
+  if(!require(p,character.only = TRUE)) install.packages(p, dependencies = TRUE)
+  library(p,character.only = TRUE)
+}
+```
+
+## Working directory
+
+It is easier to work in R using a working directory. That way you ensure your inputs and outputs will be loaded and stored in a global directory.
+
+```{r}
+# Set working directory
+dir <- '/mnt/d/M.Sc. Gesopatial Tecnologies/GeoMundus/GeoMundus 2019/Neumonia'
+setwd(file.path(dir))
+```
+
+We will also use some useful functions in the exploratory analisis. Load them all from the *SpatialFunctions* folder. Remember this folder has to be in your current working directory.
+
+```{r}
+# Load some useful functions
+funDir <- file.path(dir, 'SpatialFunctions')
+spFun <- list.files(funDir, pattern = '.r', full.names = T)
+invisible(lapply(spFun, source))
+```
+
+And we will add an extra function for resting the plot options everytime we plot.
+
+```{r}
+# Reset par for sequential plotting
+resetPar <- function() { dev.new(); op <- par(no.readonly = TRUE); dev.off(); op}
+```
+
+# Data
+
+Our data contains the [standardized mortality ratio (SMR)](https://ibis.health.state.nm.us/resource/SMR_ISR.html#:~:text=Standardized%20Mortality%20Ratio%20(SMR)%20is,the%20same%20age%2Fsex%20groups.) of Pneumonia (our study variable) in 19 districts of Bogotá, Colombia for the years 2004, 2007, 2011 and 2014. The data also contains socio-economic, enviromental and healthcare covariates.
+
+As our data is stored in a *shapefile (.shp)* format, we will load it like so.
+
+```{r}
+# Load Data
+years <- list('04','07','11','14')
+pneuData <- paste0(dir, '/SHPFinal/Neumonia', years, '.shp')
+```
+
+And then we will read it using the `sp` package.
+
+```{r, results=FALSE}
+# read Data
+pneuShp <- lapply(pneuData, st_read)
+pneuNames <- as.character(paste0('pneu',years))
+names(pneuShp) <- pneuNames
+```
+
+# Exploratory Analysis
+
+## Spatial weights matrices
+
+One of the main aspects of any spatial autorregresive model is the contiguity matrix, also known as the spatial weights matrix ($\mathbf{W}$). This matrix encodes the spatial dependence and influence of one region with its neighbors. There are many ways to define $\mathbf{W}$. Usually, an expert can propose a potential spatial weights matrix based on their knowledge of the phenomenon (study variable). For our research, we will consider most of the parametric approaches as we do not make any assumptions about the underlying spatial structure of the SMR variable. 
+
+```{r}
+# Contiguity criteria
+
+# Queen
+queenW <- lapply(pneuShp, poly2nb)
+# Root
+rootW <- lapply(pneuShp, poly2nb, queen = F)
+
+# Distance criteria
+
+# Coords
+coords <- lapply(pneuShp, function(x) {st_sfc(st_centroid(x$geometry))})
+
+# Delanuay Triangulation
+triangW <- lapply(coords, tri2nb)
+# Sphere of Influence
+sphereW <- lapply(1:length(pneuNames), function(x) {graph2nb(soi.graph(triangW[[x]], coords[[x]]))})
+names(sphereW) <- pneuNames
+# Gabriel
+gabrielW <- lapply(1:length(pneuNames), function(x) {graph2nb(gabrielneigh(coords[[x]]), sym = T)})
+names(gabrielW) <- pneuNames
+# Relative Neighbors
+relativeW <- lapply(1:length(pneuNames), function(x) {graph2nb(relativeneigh(coords[[x]]), sym = T)})
+names(relativeW) <- pneuNames
+
+# K-neighbors critreria
+
+# Polygons IDs
+IDs <- row.names(as.data.frame(pneuShp$pneu04))
+
+# K-1 neighbor
+kn1W <- lapply(1:length(pneuNames), function(x) {knn2nb(knearneigh(coords[[x]], k = 1), row.names = IDs)})
+names(kn1W) <- pneuNames
+
+# K-2 neighbors
+kn2W <- lapply(1:length(pneuNames), function(x) {knn2nb(knearneigh(coords[[x]], k = 2), row.names = IDs)})
+names(kn2W) <- pneuNames
+
+# K-4 neighbors
+kn4W <- lapply(1:length(pneuNames), function(x) {knn2nb(knearneigh(coords[[x]], k = 4), row.names = IDs)})
+names(kn4W) <- pneuNames
+```
+
+Now we plot the matrices to check the relations among regions.
+
+```{r}
+# Plot weights matrices
+op=par(mfrow=c(3,3), oma=c(0,0,0,0), mar=c(1,1,1,1))
+matrices <- c('queen','root', 'triang', 'sphere', 'gabriel', 'relative', 'kn1', 'kn2', 'kn4')
+
+for (w in matrices){
+  plot(st_geometry(pneuShp$pneu04), border = 'gray')
+  plot(get(paste0(w, 'W'))$pneu04, coords$pneu04, add=T,  pch=20, cex.main=1.5 , col="gray25")
+  title(w)
+}
+```
+Now we will evaluate the best matrix for our data. We will use the [Principal coordinates of neighbour matrices (PCNM)](https://www.sciencedirect.com/science/article/abs/pii/S0304380006000925) as our selection criteria. For further details, please refer to the PCNM method.
+
+First we will create a function to extract the AIC of the PCNM method to compare and extract the best matrix per each year.
+
+```{r}
+## Spatial weights matrices PCNM
+
+# Function to get AIC for each matrix
+getMatrixAIC <- function(x, w){
+  pcnm <- test.W(pneuShp[[x]]$SMR, w[[x]])
+  aic <- pcnm$all$AICc
+  return(aic)
+}
+```
+ 
+And then we will get the AIC values.
+
+```{r}
+# empty list
+pcnm <- list()
+# Get AICs
+for (w in matrices){
+  aic <- lapply(1:length(pneuNames), function(x){getMatrixAIC(x,get(paste0(w, 'W')))})
+  pcnm[[w]] <- aic
+}
+
+# AICs per year and matrix
+pcnm <- as.data.frame(do.call(rbind, pcnm))
+names(pcnm) <- pneuNames
+
+```
+These are the best matrices per year based on the AIC value.
+
+```{r}
+# Best weights matrices per year (based on AIC)
+bestMatrices <- lapply(1:length(pneuNames),function(x){rownames(pcnm[which.min(pcnm[[x]]),])})
+names(bestMatrices) <- pneuNames # 2004: queen, 2007: kn2, 2011: kn4, 2014; kn2
+bestMatrices
+```
+
+
+
