@@ -44,411 +44,6 @@ for(p in packages){
 }
 ```
 
-```
-## Loading required package: lmtest
-```
-
-```
-## Loading required package: zoo
-```
-
-```
-## 
-## Attaching package: 'zoo'
-```
-
-```
-## The following objects are masked from 'package:base':
-## 
-##     as.Date, as.Date.numeric
-```
-
-```
-## Loading required package: RColorBrewer
-```
-
-```
-## Loading required package: classInt
-```
-
-```
-## Loading required package: spdep
-```
-
-```
-## Loading required package: sp
-```
-
-```
-## Loading required package: spData
-```
-
-```
-## To access larger datasets in this package, install the spDataLarge
-## package with: `install.packages('spDataLarge',
-## repos='https://nowosad.github.io/drat/', type='source')`
-```
-
-```
-## Loading required package: sf
-```
-
-```
-## Linking to GEOS 3.6.2, GDAL 2.2.3, PROJ 4.9.3
-```
-
-```
-## Loading required package: TeachingDemos
-```
-
-```
-## Loading required package: shapefiles
-```
-
-```
-## Loading required package: foreign
-```
-
-```
-## 
-## Attaching package: 'shapefiles'
-```
-
-```
-## The following objects are masked from 'package:foreign':
-## 
-##     read.dbf, write.dbf
-```
-
-```
-## Loading required package: maptools
-```
-
-```
-## Checking rgeos availability: TRUE
-```
-
-```
-## Loading required package: scatterplot3d
-```
-
-```
-## Loading required package: geoR
-```
-
-```
-## --------------------------------------------------------------
-##  Analysis of Geostatistical Data
-##  For an Introduction to geoR go to http://www.leg.ufpr.br/geoR
-##  geoR version 1.8-1 (built on 2020-02-08) is now loaded
-## --------------------------------------------------------------
-```
-
-```
-## Loading required package: spatial
-```
-
-```
-## Loading required package: fBasics
-```
-
-```
-## Loading required package: timeDate
-```
-
-```
-## Loading required package: timeSeries
-```
-
-```
-## 
-## Attaching package: 'timeSeries'
-```
-
-```
-## The following object is masked from 'package:zoo':
-## 
-##     time<-
-```
-
-```
-## Loading required package: car
-```
-
-```
-## Loading required package: carData
-```
-
-```
-## 
-## Attaching package: 'car'
-```
-
-```
-## The following object is masked from 'package:fBasics':
-## 
-##     densityPlot
-```
-
-```
-## Loading required package: aplpack
-```
-
-```
-## 
-## Attaching package: 'aplpack'
-```
-
-```
-## The following objects are masked from 'package:TeachingDemos':
-## 
-##     faces, slider
-```
-
-```
-## Loading required package: RODBC
-```
-
-```
-## Loading required package: ggplot2
-```
-
-```
-## Loading required package: spgrass6
-```
-
-```
-## Loading required package: XML
-```
-
-```
-## GRASS GIS interface loaded with GRASS version: (GRASS not running)
-```
-
-```
-## Loading required package: adespatial
-```
-
-```
-## Registered S3 methods overwritten by 'adegraphics':
-##   method         from
-##   biplot.dudi    ade4
-##   kplot.foucart  ade4
-##   kplot.mcoa     ade4
-##   kplot.mfa      ade4
-##   kplot.pta      ade4
-##   kplot.sepan    ade4
-##   kplot.statis   ade4
-##   scatter.coa    ade4
-##   scatter.dudi   ade4
-##   scatter.nipals ade4
-##   scatter.pco    ade4
-##   score.acm      ade4
-##   score.mix      ade4
-##   score.pca      ade4
-##   screeplot.dudi ade4
-```
-
-```
-## Registered S3 method overwritten by 'ape':
-##   method   from 
-##   plot.mst spdep
-```
-
-```
-## Registered S3 methods overwritten by 'adespatial':
-##   method             from       
-##   plot.multispati    adegraphics
-##   print.multispati   ade4       
-##   summary.multispati ade4
-```
-
-```
-## Loading required package: RANN
-```
-
-```
-## Loading required package: ade4
-```
-
-```
-## 
-## Attaching package: 'ade4'
-```
-
-```
-## The following object is masked from 'package:adespatial':
-## 
-##     multispati
-```
-
-```
-## The following object is masked from 'package:spdep':
-## 
-##     mstree
-```
-
-```
-## Loading required package: olsrr
-```
-
-```
-## 
-## Attaching package: 'olsrr'
-```
-
-```
-## The following object is masked from 'package:datasets':
-## 
-##     rivers
-```
-
-```
-## Loading required package: rgeos
-```
-
-```
-## rgeos version: 0.5-5, (SVN revision 640)
-##  GEOS runtime version: 3.6.2-CAPI-1.10.2 
-##  Linking to sp version: 1.4-5 
-##  Polygon checking: TRUE
-```
-
-```
-## Loading required package: rgdal
-```
-
-```
-## rgdal: version: 1.5-23, (SVN revision 1121)
-## Geospatial Data Abstraction Library extensions to R successfully loaded
-## Loaded GDAL runtime: GDAL 2.2.3, released 2017/11/20
-## Path to GDAL shared files: /usr/share/gdal/2.2
-## GDAL binary built with GEOS: TRUE 
-## Loaded PROJ runtime: Rel. 4.9.3, 15 August 2016, [PJ_VERSION: 493]
-## Path to PROJ shared files: (autodetected)
-## Linking to sp version:1.4-5
-```
-
-```
-## 
-## Attaching package: 'rgdal'
-```
-
-```
-## The following object is masked from 'package:fBasics':
-## 
-##     getDescription
-```
-
-```
-## Loading required package: spgwr
-```
-
-```
-## NOTE: This package does not constitute approval of GWR
-## as a method of spatial analysis; see example(gwr)
-```
-
-```
-## Loading required package: GWmodel
-```
-
-```
-## Loading required package: robustbase
-```
-
-```
-## Loading required package: Rcpp
-```
-
-```
-## Loading required package: spatialreg
-```
-
-```
-## Loading required package: Matrix
-```
-
-```
-## 
-## Attaching package: 'spatialreg'
-```
-
-```
-## The following objects are masked from 'package:spdep':
-## 
-##     as_dgRMatrix_listw, as_dsCMatrix_I, as_dsCMatrix_IrW,
-##     as_dsTMatrix_listw, as.spam.listw, can.be.simmed, cheb_setup,
-##     create_WX, do_ldet, eigen_pre_setup, eigen_setup, eigenw,
-##     errorsarlm, get.ClusterOption, get.coresOption, get.mcOption,
-##     get.VerboseOption, get.ZeroPolicyOption, GMargminImage, GMerrorsar,
-##     griffith_sone, gstsls, Hausman.test, impacts, intImpacts,
-##     Jacobian_W, jacobianSetup, l_max, lagmess, lagsarlm, lextrB,
-##     lextrS, lextrW, lmSLX, LU_prepermutate_setup, LU_setup,
-##     Matrix_J_setup, Matrix_setup, mcdet_setup, MCMCsamp, ME, mom_calc,
-##     mom_calc_int2, moments_setup, powerWeights, sacsarlm,
-##     SE_classic_setup, SE_interp_setup, SE_whichMin_setup,
-##     set.ClusterOption, set.coresOption, set.mcOption,
-##     set.VerboseOption, set.ZeroPolicyOption, similar.listw, spam_setup,
-##     spam_update_setup, SpatialFiltering, spautolm, spBreg_err,
-##     spBreg_lag, spBreg_sac, stsls, subgraph_eigenw, trW
-```
-
-```
-## Welcome to GWmodel version 2.2-3.
-## The new version of GWmodel 2.2-5 now is ready
-```
-
-```
-## 
-## Attaching package: 'GWmodel'
-```
-
-```
-## The following objects are masked from 'package:stats':
-## 
-##     BIC, fitted
-```
-
-```
-## Loading required package: nnet
-```
-
-```
-## Loading required package: gridExtra
-```
-
-```
-## Loading required package: MASS
-```
-
-```
-## 
-## Attaching package: 'MASS'
-```
-
-```
-## The following object is masked from 'package:olsrr':
-## 
-##     cement
-```
-
-```
-## Loading required package: caret
-```
-
-```
-## Loading required package: lattice
-```
-
-```
-## Loading required package: glmnet
-```
-
-```
-## Loaded glmnet 4.1-1
-```
-
 ## Working directory
 
 It is easier to work in R using a working directory. That way you ensure your inputs and outputs will be loaded and stored in a global directory.
@@ -567,6 +162,9 @@ for (w in matrices){
 ```
 
 ![](SAR-Pneumonia_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
+
+### Principal coordinates of neighbour matrices (PCNM)
+
 Now we will evaluate the best matrix for our data. We will use the [Principal coordinates of neighbour matrices (PCNM)](https://www.sciencedirect.com/science/article/abs/pii/S0304380006000925) as our selection criteria. For further details, please refer to the PCNM method.
 
 First we will create a function to extract the AIC of the PCNM method to compare and extract the best matrix per each year.
@@ -855,6 +453,20 @@ for (w in matrices){
 # AICs per year and matrix
 pcnm <- as.data.frame(do.call(rbind, pcnm))
 names(pcnm) <- pneuNames
+pcnm
+```
+
+```
+##             pneu04    pneu07    pneu11    pneu14
+## queen    -68.77277 -58.97563 -48.16067 -31.85952
+## root     -61.15346 -61.13476  -48.8688 -25.39557
+## triang   -61.19358 -66.05321 -62.92984 -23.53263
+## sphere   -53.70998  -71.8989 -55.78013 -24.97818
+## gabriel  -55.85301 -63.07068 -57.84765 -27.43804
+## relative -55.71152 -71.29338 -59.65928 -35.22539
+## kn1      -59.24907 -66.80696 -56.95576  -20.2536
+## kn2      -67.48367 -83.38051 -58.48591  -42.9033
+## kn4      -53.45341  -80.2701 -70.07799 -29.22466
 ```
 These are the best matrices per year based on the AIC value.
 
@@ -879,6 +491,139 @@ bestMatrices
 ## $pneu14
 ## [1] "kn2"
 ```
+### Moran's Index
+
+We will confirm the PCNM finding using the Moran's Index of our study variable and the spatial weights matrices. We expect to find spatial autocorrelation between the SMR and $\mathbf{W}$. We will use the Moran's I statistically significant $p-value$ to assess the matrices. 
+
+
+```r
+## Compute Moran's I to asses matrices
+
+#set seed
+set.seed(123)
+
+# Moran's I test
+getMoranPvalue <- function(x, w){
+  moran <- moran.mc(pneuShp[[x]]$SMR, nb2listw(w[[x]]), nsim = 1000, zero.policy = TRUE)
+  p <- moran$p.value
+  return(p)
+}
+
+# empty list
+moranp <- list()
+# Get p values
+for (w in matrices){
+  pvalue <- lapply(1:length(pneuNames), function(x){getMoranPvalue(x,get(paste0(w, 'W')))})
+  moranp[[w]] <- pvalue
+}
+
+# p-values per year and matrix
+moranp <- as.data.frame(do.call(rbind, moranp))
+names(moranp) <- pneuNames # 2004: queen, 2007: kn2, 2011: kn4, 2014: queen
+moranp
+```
+
+```
+##              pneu04     pneu07      pneu11      pneu14
+## queen    0.03396603  0.1188811  0.04995005  0.04395604
+## root     0.01798202  0.1658342  0.02297702  0.01798202
+## triang    0.1048951  0.1258741 0.000999001 0.000999001
+## sphere   0.02597403  0.1228771 0.007992008  0.02997003
+## gabriel  0.06393606  0.1468531 0.000999001 0.008991009
+## relative 0.02097902  0.1378621  0.01598402   0.1198801
+## kn1      0.08591409 0.01398601  0.00999001   0.1868132
+## kn2      0.06193806 0.07392607  0.00999001   0.2127872
+## kn4      0.05294705 0.09090909 0.000999001  0.01998002
+```
+
+And now having the matrices selected by both the PCNM method and the Moran's I, we chose our final $\mathbf{W}$'s for our study period.
+
+
+```r
+# Selectec matrices based on both PCNM and Moran's I
+spatialW <- c('queenW','kn2W', 'kn4W', 'queenW')
+```
+
+Now, let us plot the Moran's I of our selected matrices.
+
+
+```r
+# Plot Moran's I
+par(resetPar())
+op=par(mfrow=c(2,2))
+for (i in 1:length(spatialW)){
+  moran.plot(pneuShp[[i]]$SMR, nb2listw(get(spatialW[[i]])[[i]]), xlab = 'SMR', ylab = 'Spatially lagged SMR', main = paste0('20', years[[i]], '\n ', spatialW[[i]] ))
+}
+```
+
+![](SAR-Pneumonia_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
+### Higher order matrices
+
+We also want to know if our matrices  have statistically significant spatial lags or greater orders, that is, finding autocorrelation throughout longer distances or neighbors orders. If we find statistically significant orders of the matrices, we have to include them in the spatial autorregresive models to guarantee a proper inclusion of the spatial dependence among the regions.
+
+
+```r
+# Plot Moran's I correlograms
+par(resetPar())
+op=par(mfrow=c(2,2))
+for (i in 1:length(spatialW)){
+  correlogram <- sp.correlogram(get(spatialW[[i]])[[i]], pneuShp[[i]]$SMR, order=5, method= "I",style="W", zero.policy=T)
+  print(correlogram)
+  plot(correlogram, main = paste0('20', years[[i]], '\n ', spatialW[[i]] ))
+} # Besides the first lag, the third lag is significative for 2004 and 2011
+```
+
+```
+## Spatial correlogram for pneuShp[[i]]$SMR 
+## method: Moran's I
+##         estimate expectation  variance standard deviate Pr(I) two sided  
+## 1 (19)  0.234139   -0.055556  0.021196           1.9898         0.04661 *
+## 2 (19) -0.056797   -0.055556  0.012225          -0.0112         0.99104  
+## 3 (19) -0.360595   -0.055556  0.016844          -2.3503         0.01876 *
+## 4 (13) -0.236993   -0.083333  0.044470          -0.7287         0.46621  
+## 5 (4)   0.223952   -0.333333  0.166388           1.3662         0.17187  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+```
+## Spatial correlogram for pneuShp[[i]]$SMR 
+## method: Moran's I
+##          estimate expectation   variance standard deviate Pr(I) two sided
+## 1 (19)  0.2211004  -0.0555556  0.0322656           1.5402          0.1235
+## 2 (17)  0.0270234  -0.0625000  0.0293030           0.5230          0.6010
+## 3 (17) -0.3003826  -0.0625000  0.0344592          -1.2815          0.2000
+## 4 (9)  -0.1204556  -0.1250000  0.0529553           0.0197          0.9842
+## 5 (5)   0.0049383  -0.2500000 -0.0738962               NA              NA
+```
+
+```
+## Spatial correlogram for pneuShp[[i]]$SMR 
+## method: Moran's I
+##          estimate expectation   variance standard deviate Pr(I) two sided    
+## 1 (19)  0.4236458  -0.0555556  0.0151020           3.8994       9.642e-05 ***
+## 2 (19) -0.1129944  -0.0555556  0.0072093          -0.6765         0.49873    
+## 3 (19) -0.2985115  -0.0555556  0.0118570          -2.2312         0.02567 *  
+## 4 (19) -0.3850834  -0.0555556  0.0283369          -1.9576         0.05028 .  
+## 5 (12) -0.1655050  -0.0909091  0.0568904          -0.3127         0.75447    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+```
+## Spatial correlogram for pneuShp[[i]]$SMR 
+## method: Moran's I
+##         estimate expectation  variance standard deviate Pr(I) two sided  
+## 1 (19)  0.199585   -0.055556  0.018520           1.8748         0.06081 .
+## 2 (19)  0.085980   -0.055556  0.010725           1.3667         0.17173  
+## 3 (19) -0.167287   -0.055556  0.014706          -0.9214         0.35687  
+## 4 (13) -0.309112   -0.083333  0.035377          -1.2004         0.22999  
+## 5 (4)  -0.261681   -0.333333 -0.366860               NA              NA  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+```
+
+![](SAR-Pneumonia_files/figure-html/unnamed-chunk-16-1.png)<!-- -->
 
 
 

@@ -31,7 +31,7 @@ packages <- c('lmtest','RColorBrewer','classInt','spdep','TeachingDemos','shapef
 
 For loading and/or installing the packages, you can run the following command. The packages that are installed in your machine will be automatically loaded. Those that are not installed will be installed and loaded to your R session. Remember to provide permits if linux is used.
 
-```{r, results=FALSE}
+```{r, results=FALSE, message=FALSE}
 # Permits
 #Sys.setenv(R_INSTALL_STAGED = FALSE)
 
@@ -151,6 +151,9 @@ for (w in matrices){
   title(w)
 }
 ```
+
+### Principal coordinates of neighbour matrices (PCNM)
+
 Now we will evaluate the best matrix for our data. We will use the [Principal coordinates of neighbour matrices (PCNM)](https://www.sciencedirect.com/science/article/abs/pii/S0304380006000925) as our selection criteria. For further details, please refer to the PCNM method.
 
 First we will create a function to extract the AIC of the PCNM method to compare and extract the best matrix per each year.
@@ -180,7 +183,7 @@ for (w in matrices){
 # AICs per year and matrix
 pcnm <- as.data.frame(do.call(rbind, pcnm))
 names(pcnm) <- pneuNames
-
+pcnm
 ```
 These are the best matrices per year based on the AIC value.
 
@@ -189,6 +192,70 @@ These are the best matrices per year based on the AIC value.
 bestMatrices <- lapply(1:length(pneuNames),function(x){rownames(pcnm[which.min(pcnm[[x]]),])})
 names(bestMatrices) <- pneuNames # 2004: queen, 2007: kn2, 2011: kn4, 2014; kn2
 bestMatrices
+```
+### Moran's Index
+
+We will confirm the PCNM finding using the Moran's Index of our study variable and the spatial weights matrices. We expect to find spatial autocorrelation between the SMR and $\mathbf{W}$. We will use the Moran's I statistically significant $p-value$ to assess the matrices. 
+
+```{r}
+
+## Compute Moran's I to asses matrices
+
+#set seed
+set.seed(123)
+
+# Moran's I test
+getMoranPvalue <- function(x, w){
+  moran <- moran.mc(pneuShp[[x]]$SMR, nb2listw(w[[x]]), nsim = 1000, zero.policy = TRUE)
+  p <- moran$p.value
+  return(p)
+}
+
+# empty list
+moranp <- list()
+# Get p values
+for (w in matrices){
+  pvalue <- lapply(1:length(pneuNames), function(x){getMoranPvalue(x,get(paste0(w, 'W')))})
+  moranp[[w]] <- pvalue
+}
+
+# p-values per year and matrix
+moranp <- as.data.frame(do.call(rbind, moranp))
+names(moranp) <- pneuNames # 2004: queen, 2007: kn2, 2011: kn4, 2014: queen
+moranp
+```
+
+And now having the matrices selected by both the PCNM method and the Moran's I, we chose our final $\mathbf{W}$'s for our study period.
+
+```{r}
+# Selectec matrices based on both PCNM and Moran's I
+spatialW <- c('queenW','kn2W', 'kn4W', 'queenW')
+```
+
+Now, let us plot the Moran's I of our selected matrices.
+
+```{r}
+# Plot Moran's I
+par(resetPar())
+op=par(mfrow=c(2,2))
+for (i in 1:length(spatialW)){
+  moran.plot(pneuShp[[i]]$SMR, nb2listw(get(spatialW[[i]])[[i]]), xlab = 'SMR', ylab = 'Spatially lagged SMR', main = paste0('20', years[[i]], '\n ', spatialW[[i]] ))
+}
+```
+### Higher order matrices
+
+We also want to know if our matrices  have statistically significant spatial lags or greater orders, that is, finding autocorrelation throughout longer distances or neighbors orders. If we find statistically significant orders of the matrices, we have to include them in the spatial autorregresive models to guarantee a proper inclusion of the spatial dependence among the regions.
+
+```{r, warning= FALSE, results= FALSE}
+# Plot Moran's I correlograms
+par(resetPar())
+op=par(mfrow=c(2,2))
+for (i in 1:length(spatialW)){
+  correlogram <- sp.correlogram(get(spatialW[[i]])[[i]], pneuShp[[i]]$SMR, order=5, method= "I",style="W", zero.policy=T)
+  print(correlogram)
+  plot(correlogram, main = paste0('20', years[[i]], '\n ', spatialW[[i]] ))
+} # Besides the first lag, the third lag is significative for 2004 and 2011
+
 ```
 
 
