@@ -1,12 +1,8 @@
 ---
 title: "Penumonia SAR Models"
 output:
-  html_document:
-    toc: true
-    toc_float:
-      collapsed: false
-      smooth_scroll: false
-    number_sections: true
+  md_document:
+    variant: markdown_github
 ---
 
 This is a reproducible example of the paper [Pneumonia Sar](). In this research, we perform a spatial autorregresive model analysis to measure the spatial influence of socio-economic, enviromental, behavioural and healthcare factors in pneumonia mortality rates. 
