@@ -18,7 +18,7 @@ This is a reproducible example of the paper [Pneumonia Sar](). In this research,
 
 ## Packages
 
-First, we will load the packages needed for processing and analyzing our data.
+First, we load the packages needed for processing and analyzing our data.
 
 
 ```r
@@ -32,7 +32,8 @@ packages <- c('lmtest','RColorBrewer','classInt','spdep','TeachingDemos','shapef
              'stats','classInt','gridExtra','lmtest','car','MASS','caret','glmnet')
 ```
 
-For loading and/or installing the packages, you can run the following command. The packages that are installed in your machine will be automatically loaded. Those that are not installed will be installed and loaded to your R session. Remember to provide permits if linux is used as operative system.
+
+For loading and/or installing the packages, you can run the following command. The packages that are installed in your machine be automatically loaded. Those that are not installed be installed and loaded to your R session. Remember to provide permits if linux is used as operative system.
 
 
 ```r
@@ -46,9 +47,10 @@ for(p in packages){
 }
 ```
 
+
 ## Working directory
 
-It is easier to work in R using a working directory. That way you ensure your inputs and outputs will be loaded and stored in a global directory.
+It is easier to work in R using a working directory. That way you ensure your inputs and outputs be loaded and stored in a global directory.
 
 
 ```r
@@ -57,7 +59,8 @@ dir <- '/mnt/d/M.Sc. Gesopatial Tecnologies/GeoMundus/GeoMundus 2019/Neumonia'
 setwd(file.path(dir))
 ```
 
-We will also use some useful functions in the exploratory analysis. Load them all from the *SpatialFunctions* folder. Remember this folder has to be in your current working directory.
+
+We also use some useful functions in the exploratory analysis. Load them all from the *SpatialFunctions* folder. Remember this folder has to be in your current working directory.
 
 
 ```r
@@ -67,7 +70,8 @@ spFun <- list.files(funDir, pattern = '.r', full.names = T)
 invisible(lapply(spFun, source))
 ```
 
-And we will add an extra function for resting the plot options everytime we plot.
+
+And we add an extra function for resting the plot options everytime we plot.
 
 
 ```r
@@ -75,11 +79,12 @@ And we will add an extra function for resting the plot options everytime we plot
 resetPar <- function() { dev.new(); op <- par(no.readonly = TRUE); dev.off(); op}
 ```
 
+
 # Data
 
 Our data contains the [standardized mortality ratio (SMR)](https://ibis.health.state.nm.us/resource/SMR_ISR.html#:~:text=Standardized%20Mortality%20Ratio%20(SMR)%20is,the%20same%20age%2Fsex%20groups.) of Pneumonia (our study variable) in 19 districts of Bogotá, Colombia for the years 2004, 2007, 2011 and 2014. The data also contains socio-economic, enviromental and healthcare covariates.
 
-As our data is stored in a *shapefile (.shp)* format, we will load it like so.
+As our data is stored in a *shapefile (.shp)* format, we load it like so.
 
 
 ```r
@@ -88,7 +93,7 @@ years <- list('04','07','11','14')
 pneuData <- paste0(dir, '/SHPFinal/Neumonia', years, '.shp')
 ```
 
-And then we will read it using the `sp` package.
+And then we read it using the `sp` package.
 
 
 ```r
@@ -102,7 +107,7 @@ names(pneuShp) <- pneuNames
 
 ## Spatial weights matrix
 
-One of the main aspects of any spatial autorregresive model is the contiguity matrix, also known as the spatial weights matrix ($\mathbf{W}$). This matrix encodes the spatial dependence and influence of one region with its neighbors. There are many ways to define $\mathbf{W}$. Usually, an expert proposes a potential spatial weights matrix based on their knowledge of the phenomenon (study variable). For our research, we will consider most of the parametric matrices configurations as we do not make any assumptions about the underlying spatial structure of the SMR variable. 
+One of the main aspects of any spatial autorregresive model is the contiguity matrix, also known as the spatial weights matrix ($\mathbf{W}$). This matrix encodes the spatial dependence and influence of one region with its neighbors. There are many ways to define $\mathbf{W}$. Usually, an expert proposes a potential spatial weights matrix based on their knowledge of the phenomenon (study variable). For our research, we consider most of the parametric matrices configurations as we do not make any assumptions about the underlying spatial structure of the SMR variable. 
 
 
 ```r
@@ -148,6 +153,7 @@ kn4W <- lapply(1:length(pneuNames), function(x) {knn2nb(knearneigh(coords[[x]], 
 names(kn4W) <- pneuNames
 ```
 
+
 Now we plot the matrices to check the relationships among regions.
 
 
@@ -165,11 +171,12 @@ for (w in matrices){
 
 ![](SAR-Pneumonia_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
 
+
 ### Principal coordinates of neighbour matrices (PCNM) {-}
 
-Now we will evaluate the best matrix for our data. We will use the [Principal coordinates of neighbour matrices (PCNM)](https://www.sciencedirect.com/science/article/abs/pii/S0304380006000925) as our selection criteria. For further details, please refer to the PCNM method.
+Now we evaluate the best matrix for our data. We use the [Principal coordinates of neighbour matrices (PCNM)](https://www.sciencedirect.com/science/article/abs/pii/S0304380006000925) as our selection criteria. For further details, please refer to the PCNM method.
 
-First we will create a function to extract the AIC of the PCNM method to compare and extract the best matrix per each year.
+First we create a function to extract the AIC of the PCNM method to compare and extract the best matrix per each year.
 
 
 ```r
@@ -183,7 +190,8 @@ getMatrixAIC <- function(x, w){
 }
 ```
  
-And then we will get the AIC values.
+
+And then we get the AIC values.
 
 
 ```r
@@ -195,6 +203,8 @@ for (w in matrices){
   pcnm[[w]] <- aic
 }
 ```
+
+
 These are the best matrices per year based on the AIC value.
 
 
@@ -238,9 +248,10 @@ bestMatrices
 ## $pneu14
 ## [1] "kn2"
 ```
+
 ### Moran's Index {-}
 
-We will confirm the PCNM finding using the Moran's Index of our study variable and the spatial weights matrices. We expect to find spatial autocorrelation between the SMR and $\mathbf{W}$. We will use the Moran's I statistically significant $p-value$ to assess the matrices. 
+We confirm the PCNM finding using the Moran's Index of our study variable and the spatial weights matrices. We expect to find spatial autocorrelation between the SMR and $\mathbf{W}$. We use the Moran's I statistically significant $p-value$ to assess the matrices. 
 
 
 ```r
@@ -283,6 +294,7 @@ moranp
 ## kn4      0.05294705 0.09090909 0.000999001  0.01998002
 ```
 
+
 And now having the matrices selected by both the PCNM method and the Moran's I, we chose our final $\mathbf{W}$'s for our study period. We selected the matrices whose PCNM's *AIC* were the lowest and Moran's I $p-values$ were statistically significant.
 
 
@@ -290,6 +302,7 @@ And now having the matrices selected by both the PCNM method and the Moran's I, 
 # Selectec matrices based on both PCNM and Moran's I
 spatialW <- c('queenW','kn2W', 'kn4W', 'queenW')
 ```
+
 
 Now, let us plot the Moran's I of our selected matrices.
 
@@ -304,6 +317,7 @@ for (i in 1:length(spatialW)){
 ```
 
 ![](SAR-Pneumonia_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
+
 
 ### Higher order matrices {-}
 
@@ -322,7 +336,8 @@ for (i in 1:length(spatialW)){
 ```
 
 ![](SAR-Pneumonia_files/figure-html/unnamed-chunk-16-1.png)<!-- -->
-We see that in 2004 and 2011 the 3rd order matrices are statistically significant. We will add the lagged variable as covariates to include them in the spatial autorregresive (SAR) models.
+
+We see that in 2004 and 2011 the 3rd order matrices are statistically significant. We add the lagged variable as covariates to include them in the spatial autorregresive (SAR) models.
 
 
 ```r
@@ -341,7 +356,7 @@ As an essential condition of the SAR models, the dependent variable (SMR), indep
 
 ### Global Moran's I {-}
 
-We will assess the presence of global spatial autocorrelation in our dependent variable using the global Moran's I.
+We assess the presence of global spatial autocorrelation in our dependent variable using the global Moran's I.
 
 
 ```r
@@ -407,11 +422,12 @@ moranI
 ## Moran I statistic       Expectation          Variance 
 ##        0.19958513       -0.05555556        0.01851956
 ```
+
 As we can see, all years except 2007 exhibit global spatial autocorrelation using a significance level of $p-value$ < 0.05.
 
 ### Geary's C {-}
 
-Geary's C is an attempt to determine if adjacent observations of the same phenomenon are correlated locally. We will use this statistics to check for local clusters in our study area. The results are very similar to those made by the Global Moran's I. 2007 does not exhibit spatial autocorrelation. 
+Geary's C is an attempt to determine if adjacent observations of the same phenomenon are correlated locally. We use this statistics to check for local clusters in our study area. The results are very similar to those made by the Global Moran's I. 2007 does not exhibit spatial autocorrelation. 
 
 
 
@@ -481,9 +497,9 @@ gearyC
 
 ### Bivariate Moran's I {-}
 
-To find spatial association between the dependent variable and the covariates, we compute the bivariate Moran's Index. Covariates with statistically significant degree of spatial correlation with the SMR are initial potential candidates for the spatial autorregresive models. We will calculate the Moran's I $p-value$ and plot to scrutinized the covariates that spatially correlate with the SMR. 
+To find spatial association between the dependent variable and the covariates, we compute the bivariate Moran's Index. Covariates with statistically significant degree of spatial correlation with the SMR are initial potential candidates for the spatial autorregresive models. We calculate the Moran's I $p-value$ and plot to scrutinized the covariates that spatially correlate with the SMR. 
 
-The analysis is perform for the entier study period. However, for the sake of brevity, we will display only the results for 2014.
+The analysis is perform for the entier study period. However, for the sake of brevity, we display only the results for 2014.
 
 
 ```r
@@ -510,13 +526,14 @@ for (col in c(78:88, 89:90)){
 ```
 
 ![](SAR-Pneumonia_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
-CPM, NUT, DEP, NBI, CVV and VAC show bivariate spatial autocorrelation with SMR. We will consider these variables in the SAR modeling as they can contribute to explaining our dependent variable.
+
+CPM, NUT, DEP, NBI and CVV show bivariate spatial autocorrelation with SMR. We consider these variables in the SAR modeling as they can contribute to explaining our dependent variable.
 
 ## Local Analysis
 
 As we see in the global analysis, such statistics (Moran’s I, Geary's C) are designed to identify global spatial autocorrelation (clustering). Such clustering is a characteristic of the complete spatial pattern and does not provide an indication of the location of the clusters.
 
-Local analysis allows to assess the spatial correlation of each location with its local neighboorhood. For this analysis, we will use the Local Spatial Autocorrelation via the Moran's I and the Getis Ord statistic.
+Local analysis allows to assess the spatial correlation of each location with its local neighboorhood. For this analysis, we use the Local Spatial Autocorrelation via the Moran's I and the Getis Ord statistic.
 
 The global Moran's I informed us of local spatial autocorrelation in the study period. However, it does not determine the existence of clusters of high/low values.
 
@@ -610,9 +627,9 @@ Albeit the exploratory analysis insinuates the existence of spatial autocorrelat
 
 ## Linear regression model
 
-We will perform three different models to find the best combination of covariates that explain the SMR. We will not assume any dependence (except the ones found in the bivariate analysis) between the independet variables and the outcome variable (SMR). We select the classic Ordinary least squeare (OLS regression) and two regularized variations, the Lasso and the Elastic Net regression. The formers reduce the risk of overfitting, the variance, the correlation effect between variables and the influence of irrelevant predictors derived in a normal OLS regression. 
+We perform three different models to find the best combination of covariates that explain the SMR. We not assume any dependence (except the ones found in the bivariate analysis) between the independet variables and the outcome variable (SMR). We select the classic Ordinary least squeare (OLS regression) and two regularized variations, the Lasso and the Elastic Net regression. The formers reduce the risk of overfitting, the variance, the correlation effect between variables and the influence of irrelevant predictors derived in a normal OLS regression. 
 
-First, we will create a function that estimates, assesses and selects the best linear model among the three different regressions. For this, we use a leave one out cross-validation approach and we retain the model with the lowest Root-Mean-Square Error (RMSE) and AIC.
+First, we create a function that estimates, assesses and selects the best linear model among the three different regressions. For this, we use a leave one out cross-validation approach and we retain the model with the lowest Root-Mean-Square Error (RMSE) and AIC.
 
 
 ```r
@@ -750,7 +767,7 @@ olsModels <- lapply(2:length(pneuNames), function (x){ cat(paste0('***20', years
 ## Formula selected model:
 ##  SMR ~ IDD + TEM + CPM + NUT + CVV + IPSE + VAC
 ```
-The outcome linear models contain potential covariates that culd explain the SMR. We will save the models for further analysis.
+The outcome linear models contain potential covariates that could explain the SMR. We save the models for further analysis.
 
 
 ```r
@@ -765,7 +782,7 @@ names(olslm) <- pneuNames
 
 Autocorrelation in the model residuals, regardless of its nature, violates the OLS assumptions. If spatial autocorrelation is identified, a model that accounts for spatial dependence has to used instead.
 
-We will assess the linear models' residuals to find residual spatial autocorrelation and to confirm the use of spatial autorregresive models for our data.
+We assess the linear models' residuals to find residual spatial autocorrelation and to confirm the use of spatial autorregresive models for our data.
 
 
 ```r
@@ -851,8 +868,9 @@ invisible(lapply(1:length(pneuNames), function (x){
 
 ![](SAR-Pneumonia_files/figure-html/unnamed-chunk-28-1.png)<!-- -->
 
+### Linear regression assumptions {-}
 
-### linear regression assumptions {-}
+We apply also formal diagnostic tests to inspect model assumptions such as linearity, multicollinearity, and homoscedasticity. The explanatory variables that survive the linear regression and its assumptions will be considered potential candidates for a spatial regression model. Normality and spatial dependence in the residuals are also tested.
 
 
 ```r
@@ -919,7 +937,453 @@ invisible(lapply(1:length(pneuNames), function (x){
 ## Non-multicolinearity
 ```
 
+2007 suffers from non-normality. For tackling this violation of the lienar regression assumptions, we perform a logaritmic transformation to the independent covariates such as our residual will become normal distributed.
 
 
+```r
+# Correct non-normality 2007
+
+# log transformation in dependent variables
+logFormula07 <- gsub("DEP", "log(DEP)", olsModels$pneu07)
+logFormula07 <- gsub("ESC", "log(ESC)", logFormula07)
+logFormula07 <- gsub("IPSE", "log(IPSE)", logFormula07)
+
+olsModels$pneu07 <- logFormula07
+olslm$pneu07 <- lm(as.formula(logFormula07), data = pneuShp$pneu07)
+
+# Normality test
+shapiro.test(residuals(olslm$pneu07)) #normal
+```
+
+```
+## 
+## 	Shapiro-Wilk normality test
+## 
+## data:  residuals(olslm$pneu07)
+## W = 0.91001, p-value = 0.07405
+```
+## Spatial autorregresive models
+
+Now that we count with the lagged variables (see [Higher order matrices](#Higher order matrices)), the covariates associated in space with the SMR (see [Bivariate Moran's I](Bivariate Moran's I)) and the ones found by the linear model, we can define the SAR models independent variables.
+
+First, we add the lagged variables. Then we add the spatially autocorrelated covariates, if not present already in the linear models.
+
+
+```r
+# Redefine formulas to include spatial lags (2004 and 2011)
+olsModels$pneu04 <- paste0(olsModels$pneu04, ' + lag3SMR')
+olsModels$pneu11 <- paste0(olsModels$pneu11, ' + lag3SMR')
+```
+
+
+As we identified spatial autocorrelation, a model that accounts for spatial dependence has to be used. Spatial econometrics literature have developed models to incorporate the spatial dependence in different forms: (i) a spatially lagged dependent variable, (ii) spatially lagged independent variables, and (iii) a spatial structure in the error term. The simultaneous interaction of the three forms produce a spatial autorregresive model known as the General Nesting Spatial (GNS) Model. The GNS is expressed as,
+
+$$\mathbf{y}=\rho \mathbf{W}_{\mathbf{y}}+\mathbf{X} \boldsymbol{\beta}+\mathbf{W} \mathbf{X} \theta+\varepsilon \\
+\varepsilon=\lambda \mathbf{W} \varepsilon+\mathbf{u}$$(1)
+
+
+where $\mathbf{y}$ represents a vector consisting of one observation on the dependent variable for every spatial unit, $\mathbf{X}$ the matrix of independent variables, $\mathbf{W}$ is the spatial weights matrix that describes the structure of dependence between units, $\mathbf{W}_{\mathbf{y}}$ denotes spatially lagged dependent variable, $\mathbf{W}_{\mathbf{X}}$ the spatially lagged independent variable, and $\mathbf{W}\varepsilon$ the spatial interaction effects in the error term. The scalar parameters $\rho$ and $\lambda$ measure the strength of dependence between units, while $\theta$, like $\boldsymbol{\beta}$, is a vector of response parameters. $\mathbf{u}$ is a vector of independently and identically distributed disturbance terms with zero mean and variance $\sigma$.
+
+Other spatial autoregressive models can be obtained by restricting the GNS model spatial interactions, that is, omitting a form of spatial dependence. For example, the spatial lag model is a particular specification in which only the endogenous interactions are considered (spatially lagged dependent variable).
+
+We employ the Lagrange Multiplier test to identify the appropriate spatial autoregressive models and their form or forms of spatial dependence.
+
+The Lagrange Multiplier tests suggest a spatial error model for 2004, and a spatial lag model for the remaining years.
+
+
+```r
+## Langrange Multipliers
+lagrange <- lapply(1:length(pneuNames), function(x) {lagMul <- summary(lm.LMtests(lm(as.formula(olsModels[[x]]), data = pneuShp[[x]]), nb2listw(get(spatialW[[x]])[[x]]), test = 'all')); bestML <- names(lagMul[which.min(lagMul$results$p.value)]) ; return(bestML)}) 
+lagrange # Lagrange Multipliers suggests a Lag model for every year
+```
+
+```
+## [[1]]
+## [1] "RLMlag"
+## 
+## [[2]]
+## [1] "LMlag"
+## 
+## [[3]]
+## [1] "LMlag"
+## 
+## [[4]]
+## [1] "LMlag"
+```
+
+However, Lagrange Multiplier test ignores models with exogenous spatial interaction (spatially lagged independent variables). We support its results with the Akaike information criterion (AIC) for the seven possible spatial models.
+
+First, we define a function to build all the SAR models. For further details about the models refer to [The SLX Model (Halleck et al.)](https://onlinelibrary.wiley.com/doi/10.1111/jors.12188).
+
+
+```r
+## Spatial autorregresive models
+sarModels <- function(lm, data, listw){
+  lagSar <- lagsarlm(lm, data ,listw)               # Spatial lag model (WY)
+  errSar <- errorsarlm(lm, data, listw)             # Error model (We)
+  durSar <- lagsarlm(lm, data ,listw, Durbin = T)   # Durbin model (WY. WX)
+  sacSar <- sacsarlm(lm, data ,listw)               # SARAR model (WY, We)
+  slxSar <- lmSLX(lm, data, listw)                  # SLX model (WX)
+  gnSar <-  sacsarlm(lm, data ,listw, Durbin = T)   # General Nesting (WY,WX,We)
+  ols <- lm(lm, data)                               # OLS regression
+  
+  sarModels <- list(lagSar, errSar, durSar, sacSar, slxSar, gnSar, ols) # All models
+  
+  statLag <- lapply(sarModels, function(x){val <- cbind(aic = AIC(x), loglik = logLik(x)[[1]]); return(val)})
+  statLag <- as.data.frame(do.call(rbind, statLag), row.names = c('lag','error','durbin','sac','slx','gns','ols'))
+  return(statLag)
+}
+```
+
+
+And then we test our models.
+
+
+```r
+# Test models
+sarResults <- lapply(1:length(pneuNames), function (x) {sarModels(as.formula(olsModels[[x]]), pneuShp[[x]], nb2listw(get(spatialW[[x]])[[x]]))})
+names(sarResults) <- pneuNames
+sarResults
+```
+
+```
+## $pneu04
+##               aic   loglik
+## lag     -2.914170 10.45709
+## error   -2.896077 10.44804
+## durbin -16.352729 23.17636
+## sac     -7.097018 13.54851
+## slx    -12.710649 20.35532
+## gns    -30.911939 31.45597
+## ols     -4.268996 10.13450
+## 
+## $pneu07
+##              aic    loglik
+## lag    -6.527506  9.263753
+## error  -6.512847  9.256423
+## durbin -1.155354  9.577677
+## sac    -4.897860  9.448930
+## slx    -2.901140  9.450570
+## gns    -1.620479 10.810240
+## ols    -8.436453  9.218227
+## 
+## $pneu11
+##              aic     loglik
+## lag    12.986909  2.5065457
+## error  13.444602  2.2776992
+## durbin  7.698594 11.1507029
+## sac    13.808901  3.0955494
+## slx     7.996370 10.0018150
+## gns     4.195890 13.9020549
+## ols    16.520817 -0.2604087
+## 
+## $pneu14
+##              aic    loglik
+## lag     4.101220  7.949390
+## error   2.416914  8.791543
+## durbin 11.487987 11.256006
+## sac     3.518699  9.240650
+## slx    13.836719  9.081641
+## gns    -4.427679 20.213839
+## ols     5.888563  6.055719
+```
+
+Let us select the models with the lowest AIC and highest Log-likelihood. These will be our final SAR models. We will ommit from the selection the OLS model, as there is no spatial interactions in it, and the GNS which has been found to be highly overfitted.
+
+
+```r
+# Get best models (based on AIC and Log Likekihood)
+bestSar <- lapply(1:length(pneuNames), function(x) {rownames(sarResults[[x]])[which.min(sarResults[[x]]$aic[1:5])]}) # No GNS or OLS
+bestSar
+```
+
+```
+## [[1]]
+## [1] "durbin"
+## 
+## [[2]]
+## [1] "lag"
+## 
+## [[3]]
+## [1] "durbin"
+## 
+## [[4]]
+## [1] "error"
+```
+
+And now we compute our definitive model for each year.
+
+
+```r
+# Selected Models
+dur04 <- lagsarlm(as.formula(olsModels$pneu04), pneuShp$pneu04, nb2listw(queenW$pneu04), Durbin = ~ CVD + NUT + VAC + TEM + ESC) 
+lag07 <- lagsarlm(as.formula(olsModels$pneu07), pneuShp$pneu07 ,nb2listw(kn2W$pneu07))
+dur11 <- lagsarlm(as.formula(olsModels$pneu11), pneuShp$pneu11, nb2listw(kn4W$pneu11), Durbin = ~  CPM + CVV + IPSE + VAC) 
+err14 <- errorsarlm(as.formula(olsModels$pneu14), pneuShp$pneu14, nb2listw(queenW$pneu14))
+sarReg <- list(dur04, lag07, dur11, err14)
+
+# Summary
+lapply(sarReg, function(x) {summary(x, Nagelkerke=T)})
+```
+
+```
+## [[1]]
+## 
+## Call:lagsarlm(formula = as.formula(olsModels$pneu04), data = pneuShp$pneu04, 
+##     listw = nb2listw(queenW$pneu04), Durbin = ~CVD + NUT + VAC + 
+##         TEM + ESC)
+## 
+## Residuals:
+##       Min        1Q    Median        3Q       Max 
+## -0.177894 -0.049231  0.010979  0.048104  0.101514 
+## 
+## Type: mixed 
+## Coefficients: (asymptotic standard errors) 
+##                Estimate  Std. Error z value  Pr(>|z|)
+## (Intercept) -20.6375101   3.8824309 -5.3156 1.063e-07
+## TEM           0.0704103   0.0195309  3.6051 0.0003121
+## NUT           0.0445005   0.0113838  3.9091 9.264e-05
+## CVD           0.0538048   0.0131305  4.0977 4.173e-05
+## ESC          -0.0525523   0.0093131 -5.6428 1.673e-08
+## VAC           0.0077153   0.0013242  5.8263 5.667e-09
+## lag3SMR      -1.0143229   0.1826959 -5.5520 2.825e-08
+## lag.CVD       0.1191404   0.0439447  2.7111 0.0067052
+## lag.NUT       0.0998653   0.0356886  2.7982 0.0051382
+## lag.VAC       0.0248744   0.0042936  5.7934 6.899e-09
+## lag.TEM       0.2911598   0.0434159  6.7063 1.996e-11
+## lag.ESC       0.0169494   0.0354422  0.4782 0.6324891
+## 
+## Rho: -0.72793, LR test value: 6.3377, p-value: 0.01182
+## Asymptotic standard error: 0.21967
+##     z-value: -3.3138, p-value: 0.0009204
+## Wald statistic: 10.981, p-value: 0.0009204
+## 
+## Log likelihood: 23.17634 for mixed model
+## ML residual variance (sigma squared): 0.0045685, (sigma: 0.067591)
+## Nagelkerke pseudo-R-squared: 0.93488 
+## Number of observations: 19 
+## Number of parameters estimated: 14 
+## AIC: -18.353, (AIC for lm: -14.015)
+## LM test for residual autocorrelation
+## test value: 3.5095, p-value: 0.061019
+## 
+## 
+## [[2]]
+## 
+## Call:lagsarlm(formula = as.formula(olsModels$pneu07), data = pneuShp$pneu07, 
+##     listw = nb2listw(kn2W$pneu07))
+## 
+## Residuals:
+##       Min        1Q    Median        3Q       Max 
+## -0.320406 -0.092983  0.016820  0.129424  0.180856 
+## 
+## Type: lag 
+## Coefficients: (asymptotic standard errors) 
+##              Estimate Std. Error z value  Pr(>|z|)
+## (Intercept) 10.021197   2.567442  3.9032 9.494e-05
+## log(DEP)     0.420959   0.211853  1.9870   0.04692
+## log(ESC)    -2.991608   0.709487 -4.2166 2.480e-05
+## log(IPSE)   -0.028294   0.033675 -0.8402   0.40079
+## 
+## Rho: -0.062638, LR test value: 0.091053, p-value: 0.76284
+## Asymptotic standard error: 0.23116
+##     z-value: -0.27098, p-value: 0.78641
+## Wald statistic: 0.073428, p-value: 0.78641
+## 
+## Log likelihood: 9.263753 for lag model
+## ML residual variance (sigma squared): 0.022059, (sigma: 0.14852)
+## Nagelkerke pseudo-R-squared: 0.53041 
+## Number of observations: 19 
+## Number of parameters estimated: 6 
+## AIC: -6.5275, (AIC for lm: -8.4365)
+## LM test for residual autocorrelation
+## test value: 0.0099139, p-value: 0.92069
+## 
+## 
+## [[3]]
+## 
+## Call:lagsarlm(formula = as.formula(olsModels$pneu11), data = pneuShp$pneu11, 
+##     listw = nb2listw(kn4W$pneu11), Durbin = ~CPM + CVV + IPSE +         VAC)
+## 
+## Residuals:
+##       Min        1Q    Median        3Q       Max 
+## -0.301052 -0.054457  0.006944  0.069554  0.262058 
+## 
+## Type: mixed 
+## Coefficients: (asymptotic standard errors) 
+##                Estimate  Std. Error z value  Pr(>|z|)
+## (Intercept) -4.0567e+01  1.3106e+01 -3.0953 0.0019661
+## CPM         -1.9567e-02  4.9148e-03 -3.9813 6.853e-05
+## CVV         -6.9515e-01  1.5512e-01 -4.4815 7.413e-06
+## IPSE         1.3613e-03  9.0062e-04  1.5115 0.1306666
+## VAC          4.9714e-02  1.3180e-02  3.7719 0.0001620
+## ACU          5.3614e-01  1.4688e-01  3.6503 0.0002619
+## lag3SMR      1.1838e+00  3.3809e-01  3.5014 0.0004627
+## lag.CPM     -2.5836e-02  9.1506e-03 -2.8234 0.0047511
+## lag.CVV     -1.0087e+00  2.4765e-01 -4.0730 4.642e-05
+## lag.IPSE    -9.2824e-03  2.5826e-03 -3.5942 0.0003254
+## lag.VAC      5.8532e-02  3.1943e-02  1.8324 0.0668992
+## 
+## Rho: 0.70102, LR test value: 6.0355, p-value: 0.014021
+## Asymptotic standard error: 0.15546
+##     z-value: 4.5093, p-value: 6.5027e-06
+## Wald statistic: 20.334, p-value: 6.5027e-06
+## 
+## Log likelihood: 10.491 for mixed model
+## ML residual variance (sigma squared): 0.017425, (sigma: 0.13201)
+## Nagelkerke pseudo-R-squared: 0.87678 
+## Number of observations: 19 
+## Number of parameters estimated: 13 
+## AIC: 5.018, (AIC for lm: 9.0535)
+## LM test for residual autocorrelation
+## test value: 0.70649, p-value: 0.40061
+## 
+## 
+## [[4]]
+## 
+## Call:errorsarlm(formula = as.formula(olsModels$pneu14), data = pneuShp$pneu14, 
+##     listw = nb2listw(queenW$pneu14))
+## 
+## Residuals:
+##        Min         1Q     Median         3Q        Max 
+## -0.2217362 -0.1008818 -0.0071495  0.0946907  0.2418540 
+## 
+## Type: error 
+## Coefficients: (asymptotic standard errors) 
+##                Estimate  Std. Error  z value  Pr(>|z|)
+## (Intercept)  1.5428e+01  1.1188e+00  13.7897 < 2.2e-16
+## IDD          4.9093e-03  2.6274e-02   0.1868  0.851781
+## TEM          1.4335e-01  4.5656e-02   3.1398  0.001691
+## CPM         -9.9509e-03  1.7192e-03  -5.7881 7.117e-09
+## NUT         -1.0078e-01  2.5222e-02  -3.9955 6.455e-05
+## CVV         -1.0633e+00  9.5253e-02 -11.1629 < 2.2e-16
+## IPSE         4.1316e-04  6.0324e-05   6.8491 7.433e-12
+## VAC         -2.5497e-02  3.9153e-03  -6.5121 7.410e-11
+## 
+## Lambda: -1.0938, LR test value: 5.4716, p-value: 0.019327
+## Asymptotic standard error: 0.25247
+##     z-value: -4.3326, p-value: 1.4739e-05
+## Wald statistic: 18.771, p-value: 1.4739e-05
+## 
+## Log likelihood: 8.791543 for error model
+## ML residual variance (sigma squared): 0.017827, (sigma: 0.13352)
+## Nagelkerke pseudo-R-squared: 0.94196 
+## Number of observations: 19 
+## Number of parameters estimated: 10 
+## AIC: 2.4169, (AIC for lm: 5.8886)
+```
+
+### SAR assumptions
+
+As we corrected for spatial autocorrelation, we must ensure our models do not violate the autocorrelation assumption. We define a function to plot the residuals of our models and corroborate randomness.
+
+
+```r
+# Residual plot function for SarLm objects
+residual.plot <- function(model, year) {
+  plot(residuals(model) ~ model$fitted.values, xlab = "fitted values", ylab = "residuals", main = year)
+  abline(h=0, lty="dotted")
+  lines(lowess(model$fitted.values, residuals(model)), col="red")
+}
+```
+
+We also check other assumptions as in our linear models.
+
+
+```r
+# Model check
+par(resetPar())
+par(mfrow=c(2,2))
+invisible(lapply(1:length(pneuNames), function (x){
+  saryear <- sarReg[[x]];
+  cat(paste0('\n***** 20', years[[x]], ' *****\n'))
+  # Linearity:
+  residual.plot(saryear, paste0('20', years[[x]]))
+  # Residuals normality: Shapiro Wilk test
+  normality <- shapiro.test(residuals(saryear))
+  if (normality$p.value >= 0.05) {cat('Normal\n')} else {cat('non-normal\n')}
+  # Heteroscedasticity: Breusch Pagan test
+  if (class(saryear)[1] == 'SlX') {homos <- bptest(saryear)} else { homos <- bptest.Sarlm(saryear)}
+  if (homos$p.value >= 0.05) {cat('Homocedastic\n')} else {cat('Heteroscedastic\n')}
+  # autocorrelation
+  moran <- moran.test(residuals(saryear), nb2listw(get(spatialW[[x]])[[x]]))
+  if (moran$p.value >= 0.05) {cat('Non-spatially autocorrelated\n')} else {cat('Spatially autocorrelated\n')}
+})) 
+```
+
+```
+## 
+## ***** 2004 *****
+```
+
+```
+## Normal
+## Homocedastic
+## Non-spatially autocorrelated
+## 
+## ***** 2007 *****
+```
+
+```
+## Normal
+## Homocedastic
+## Non-spatially autocorrelated
+## 
+## ***** 2011 *****
+```
+
+```
+## Normal
+## Homocedastic
+## Non-spatially autocorrelated
+## 
+## ***** 2014 *****
+```
+
+![](SAR-Pneumonia_files/figure-html/unnamed-chunk-38-1.png)<!-- -->
+
+```
+## Normal
+## Homocedastic
+## Non-spatially autocorrelated
+```
+
+# Inference
+
+## Impacts
+
+
+```r
+lapply(1:3, function (x) {impacts(sarReg[[x]], listw = nb2listw(get(spatialW[[x]])[[x]]))}) # 2014: error models doesn't have impacts
+```
+
+```
+## [[1]]
+## Impact measures (mixed, exact):
+##               Direct   Indirect       Total
+## TEM      0.033057637 0.17619252  0.20925016
+## NUT      0.033995320 0.04955298  0.08354830
+## CVD      0.041353052 0.05873489  0.10008794
+## ESC     -0.061147358 0.04054303 -0.02060433
+## VAC      0.004716873 0.01414365  0.01886052
+## lag3SMR -1.129283310 0.54226790 -0.58701541
+## 
+## [[2]]
+## Impact measures (lag, exact):
+##                Direct     Indirect       Total
+## log(DEP)   0.42138834 -0.025242917  0.39614542
+## log(ESC)  -2.99465844  0.179392521 -2.81526592
+## log(IPSE) -0.02832316  0.001696675 -0.02662648
+## 
+## [[3]]
+## Impact measures (mixed, exact):
+##                Direct    Indirect       Total
+## CPM     -0.0277853070 -0.12407381 -0.15185911
+## CVV     -1.0059640917 -4.69271943 -5.69868352
+## IPSE    -0.0003690531 -0.02612434 -0.02649339
+## VAC      0.0691156352  0.29292868  0.36204431
+## ACU      0.6142287905  1.17897811  1.79320690
+## lag3SMR  1.3562236712  2.60319614  3.95941981
+```
 
 

@@ -233,7 +233,6 @@ gearyC
 #                OLS Regression                  #
 #################################################
 
-
 selectLinearModel <- function(dataset, variablesNames, formula){
   
   # Data frame without geometry
@@ -376,6 +375,11 @@ shapiro.test(residuals(olslm$pneu07)) #normal
 olsModels$pneu04 <- paste0(olsModels$pneu04, ' + lag3SMR')
 olsModels$pneu11 <- paste0(olsModels$pneu11, ' + lag3SMR')
 
+# Redefine formulas to include spatially correlated covariates
+# olsModels$pneu04 <- paste0(olsModels$pneu04, ' + CPM + CVV')
+# olsModels$pneu07 <- paste0(olsModels$pneu07, ' + log(NUT)')
+# olsModels$pneu11 <- paste0(olsModels$pneu11, ' + CVD + ESC')
+# olsModels$pneu14 <- paste0(olsModels$pneu14, ' + DEP ')
 
 ## Langrange Multipliers
 lagrange <- lapply(1:length(pneuNames), function(x) {lagMul <- summary(lm.LMtests(lm(as.formula(olsModels[[x]]), data = pneuShp[[x]]), nb2listw(get(spatialW[[x]])[[x]]), test = 'all')); bestML <- names(lagMul[which.min(lagMul$results$p.value)]) ; return(bestML)}) 
