@@ -501,7 +501,7 @@ lapply(1:length(pneuNames), function (x){
   lm.morantest(olslm[[x]], nb2listw(get(spatialW[[x]])[[x]]))
 })   # only 2011 has residual spatial autocorrelation
 ```
-The Moran's I test in the linear regression residuals concluded that only 2011 has a spatial error dependence. Although 2004, 2007 and 2014 show no evidence of residual spatial autocorrelaton, we detected spatial dependence in the outcome variable. The results from the Moran's I in both the dependent variable and the OLS residuals suggest initial spatial autorregresive model configurations that considers the nature of this dependence. For instance, in 2011 we might need a model that accounts for spatial structure in the error term.
+The Moran's I test in the linear regression residuals concluded that only 2011 present residual spatial autocorrelation. Although 2004, 2007 and 2014 show no evidence of residual spatial autocorrelaton, we detected spatial dependence in the outcome variable. The results from the Moran's I in both the dependent variable and the OLS residuals suggest initial spatial autorregresive model configurations that considers the nature of this dependence. For instance, in 2011 we might need a model that accounts for spatial structure in the error term.
 
 Now let us plot the Moran's I to visualize the results.
 
