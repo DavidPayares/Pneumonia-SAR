@@ -1519,7 +1519,7 @@ packages &lt;- c(&#39;lmtest&#39;,&#39;RColorBrewer&#39;,&#39;classInt&#39;,&#39
              &#39;scatterplot3d&#39;,&#39;geoR&#39;,&#39;spatial&#39;,&#39;fBasics&#39;,&#39;car&#39;,&#39;aplpack&#39;,&#39;RODBC&#39;,&#39;ggplot2&#39;,&#39;spgrass6&#39;,
              &#39;adespatial&#39;,&#39;RANN&#39;,&#39;ade4&#39;,&#39;olsrr&#39;,&#39;rgeos&#39;,&#39;rgdal&#39;,&#39;spdep&#39;,&#39;spgwr&#39;,&#39;GWmodel&#39;,&#39;nnet&#39;,&#39;olsrr&#39;,
              &#39;stats&#39;,&#39;classInt&#39;,&#39;gridExtra&#39;,&#39;lmtest&#39;,&#39;car&#39;,&#39;MASS&#39;,&#39;caret&#39;,&#39;glmnet&#39;)</code></pre>
-<p>For loading and/or installing the packages, you can run the following command. The packages that are installed in your machine will be automatically loaded. Those that are not installed will be installed and loaded to your R session. Remember to provide permits if linux is used.</p>
+<p>For loading and/or installing the packages, you can run the following command. The packages that are installed in your machine will be automatically loaded. Those that are not installed will be installed and loaded to your R session. Remember to provide permits if linux is used as operative system.</p>
 <pre class="r"><code># Permits
 #Sys.setenv(R_INSTALL_STAGED = FALSE)
 
@@ -1535,7 +1535,7 @@ for(p in packages){
 <pre class="r"><code># Set working directory
 dir &lt;- &#39;/mnt/d/M.Sc. Gesopatial Tecnologies/GeoMundus/GeoMundus 2019/Neumonia&#39;
 setwd(file.path(dir))</code></pre>
-<p>We will also use some useful functions in the exploratory analisis. Load them all from the <em>SpatialFunctions</em> folder. Remember this folder has to be in your current working directory.</p>
+<p>We will also use some useful functions in the exploratory analysis. Load them all from the <em>SpatialFunctions</em> folder. Remember this folder has to be in your current working directory.</p>
 <pre class="r"><code># Load some useful functions
 funDir &lt;- file.path(dir, &#39;SpatialFunctions&#39;)
 spFun &lt;- list.files(funDir, pattern = &#39;.r&#39;, full.names = T)
@@ -1560,9 +1560,9 @@ names(pneuShp) &lt;- pneuNames</code></pre>
 </div>
 <div id="exploratory-analysis" class="section level1">
 <h1><span class="header-section-number">3</span> Exploratory Analysis</h1>
-<div id="spatial-weights-matrices" class="section level2">
-<h2><span class="header-section-number">3.1</span> Spatial weights matrices</h2>
-<p>One of the main aspects of any spatial autorregresive model is the contiguity matrix, also known as the spatial weights matrix (<span class="math inline">\(\mathbf{W}\)</span>). This matrix encodes the spatial dependence and influence of one region with its neighbors. There are many ways to define <span class="math inline">\(\mathbf{W}\)</span>. Usually, an expert can propose a potential spatial weights matrix based on their knowledge of the phenomenon (study variable). For our research, we will consider most of the parametric approaches as we do not make any assumptions about the underlying spatial structure of the SMR variable.</p>
+<div id="spatial-weights-matrix" class="section level2">
+<h2><span class="header-section-number">3.1</span> Spatial weights matrix</h2>
+<p>One of the main aspects of any spatial autorregresive model is the contiguity matrix, also known as the spatial weights matrix (<span class="math inline">\(\mathbf{W}\)</span>). This matrix encodes the spatial dependence and influence of one region with its neighbors. There are many ways to define <span class="math inline">\(\mathbf{W}\)</span>. Usually, an expert proposes a potential spatial weights matrix based on their knowledge of the phenomenon (study variable). For our research, we will consider most of the parametric matrices configurations as we do not make any assumptions about the underlying spatial structure of the SMR variable.</p>
 <pre class="r"><code># Contiguity criteria
 
 # Queen
@@ -1603,7 +1603,7 @@ names(kn2W) &lt;- pneuNames
 # K-4 neighbors
 kn4W &lt;- lapply(1:length(pneuNames), function(x) {knn2nb(knearneigh(coords[[x]], k = 4), row.names = IDs)})
 names(kn4W) &lt;- pneuNames</code></pre>
-<p>Now we plot the matrices to check the relations among regions.</p>
+<p>Now we plot the matrices to check the relationships among regions.</p>
 <pre class="r"><code># Plot weights matrices
 op=par(mfrow=c(3,3), oma=c(0,0,0,0), mar=c(1,1,1,1))
 matrices &lt;- c(&#39;queen&#39;,&#39;root&#39;, &#39;triang&#39;, &#39;sphere&#39;, &#39;gabriel&#39;, &#39;relative&#39;, &#39;kn1&#39;, &#39;kn2&#39;, &#39;kn4&#39;)
@@ -1634,258 +1634,7 @@ for (w in matrices){
   aic &lt;- lapply(1:length(pneuNames), function(x){getMatrixAIC(x,get(paste0(w, &#39;W&#39;)))})
   pcnm[[w]] &lt;- aic
 }</code></pre>
-<pre><code>## 
-## 
-## AICc for the null model: -46.1368814476416 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM15 -68.77277     5
-## 
-## 
-## AICc for the null model: -55.8498077023605 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM9 -58.97563     5
-## 
-## 
-## AICc for the null model: -32.8846076165118 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM1 -48.16067     6
-## 
-## 
-## AICc for the null model: -15.1826555101499 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM15 -31.85952     6
-## 
-## 
-## AICc for the null model: -46.1368814476416 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM18 -61.15346     3
-## 
-## 
-## AICc for the null model: -55.8498077023605 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM3 -61.13476     5
-## 
-## 
-## AICc for the null model: -32.8846076165118 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM16 -48.8688     8
-## 
-## 
-## AICc for the null model: -15.1826555101499 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM16 -25.39557     6
-## 
-## 
-## AICc for the null model: -46.1368814476416 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM12 -61.19358     7
-## 
-## 
-## AICc for the null model: -55.8498077023605 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM16 -66.05321     3
-## 
-## 
-## AICc for the null model: -32.8846076165118 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM13 -62.92984     3
-## 
-## 
-## AICc for the null model: -15.1826555101499 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM3 -23.53263     4
-## 
-## 
-## AICc for the null model: -46.1368814476416 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM3 -53.70998     4
-## 
-## 
-## AICc for the null model: -55.8498077023605 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM16 -71.8989     9
-## 
-## 
-## AICc for the null model: -32.8846076165118 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM15 -55.78013     5
-## 
-## 
-## AICc for the null model: -15.1826555101499 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM8 -24.97818     2
-## 
-## 
-## AICc for the null model: -46.1368814476416 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM14 -55.85301     5
-## 
-## 
-## AICc for the null model: -55.8498077023605 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM17 -63.07068     8
-## 
-## 
-## AICc for the null model: -32.8846076165118 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM4 -57.84765     3
-## 
-## 
-## AICc for the null model: -15.1826555101499 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM8 -27.43804     2
-## 
-## 
-## AICc for the null model: -46.1368814476416 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM18 -55.71152     8
-## 
-## 
-## AICc for the null model: -55.8498077023605 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM12 -71.29338     7
-## 
-## 
-## AICc for the null model: -32.8846076165118 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM12 -59.65928     5
-## 
-## 
-## AICc for the null model: -15.1826555101499 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM16 -35.22539     6
-## 
-## 
-## AICc for the null model: -46.1368814476416 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM7 -59.24907     7
-## 
-## 
-## AICc for the null model: -55.8498077023605 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM6 -66.80696     5
-## 
-## 
-## AICc for the null model: -32.8846076165118 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM18 -56.95576     7
-## 
-## 
-## AICc for the null model: -15.1826555101499 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM18 -20.2536     6
-## 
-## 
-## AICc for the null model: -46.1368814476416 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM1 -67.48367     6
-## 
-## 
-## AICc for the null model: -55.8498077023605 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM1 -83.38051     7
-## 
-## 
-## AICc for the null model: -32.8846076165118 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM15 -58.48591     5
-## 
-## 
-## AICc for the null model: -15.1826555101499 
-## 
-## Best spatial model:
-##          AICc NbVar
-## MEM5 -42.9033    10
-## 
-## 
-## AICc for the null model: -46.1368814476416 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM1 -53.45341     4
-## 
-## 
-## AICc for the null model: -55.8498077023605 
-## 
-## Best spatial model:
-##          AICc NbVar
-## MEM1 -80.2701    10
-## 
-## 
-## AICc for the null model: -32.8846076165118 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM11 -70.07799    10
-## 
-## 
-## AICc for the null model: -15.1826555101499 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM4 -29.22466     5</code></pre>
+<p>These are the best matrices per year based on the AIC value.</p>
 <pre class="r"><code># AICs per year and matrix
 pcnm &lt;- as.data.frame(do.call(rbind, pcnm))
 names(pcnm) &lt;- pneuNames
@@ -1900,7 +1649,6 @@ pcnm</code></pre>
 ## kn1      -59.24907 -66.80696 -56.95576  -20.2536
 ## kn2      -67.48367 -83.38051 -58.48591  -42.9033
 ## kn4      -53.45341  -80.2701 -70.07799 -29.22466</code></pre>
-<p>These are the best matrices per year based on the AIC value.</p>
 <pre class="r"><code># Best weights matrices per year (based on AIC)
 bestMatrices &lt;- lapply(1:length(pneuNames),function(x){rownames(pcnm[which.min(pcnm[[x]]),])})
 names(bestMatrices) &lt;- pneuNames # 2004: queen, 2007: kn2, 2011: kn4, 2014; kn2
@@ -1954,7 +1702,7 @@ moranp</code></pre>
 ## kn1      0.08591409 0.01398601  0.00999001   0.1868132
 ## kn2      0.06193806 0.07392607  0.00999001   0.2127872
 ## kn4      0.05294705 0.09090909 0.000999001  0.01998002</code></pre>
-<p>And now having the matrices selected by both the PCNM method and the Moran’s I, we chose our final <span class="math inline">\(\mathbf{W}\)</span>’s for our study period.</p>
+<p>And now having the matrices selected by both the PCNM method and the Moran’s I, we chose our final <span class="math inline">\(\mathbf{W}\)</span>’s for our study period. We selected the matrices whose PCNM’s <em>AIC</em> were the lowest and Moran’s I <span class="math inline">\(p-values\)</span> were statistically significant.</p>
 <pre class="r"><code># Selectec matrices based on both PCNM and Moran&#39;s I
 spatialW &lt;- c(&#39;queenW&#39;,&#39;kn2W&#39;, &#39;kn4W&#39;, &#39;queenW&#39;)</code></pre>
 <p>Now, let us plot the Moran’s I of our selected matrices.</p>
@@ -1974,47 +1722,150 @@ for (i in 1:length(spatialW)){
   print(correlogram)
   plot(correlogram, main = paste0(&#39;20&#39;, years[[i]], &#39;\n &#39;, spatialW[[i]] ))
 } # Besides the first lag, the third lag is significative for 2004 and 2011</code></pre>
-<pre><code>## Spatial correlogram for pneuShp[[i]]$SMR 
-## method: Moran&#39;s I
-##         estimate expectation  variance standard deviate Pr(I) two sided  
-## 1 (19)  0.234139   -0.055556  0.021196           1.9898         0.04661 *
-## 2 (19) -0.056797   -0.055556  0.012225          -0.0112         0.99104  
-## 3 (19) -0.360595   -0.055556  0.016844          -2.3503         0.01876 *
-## 4 (13) -0.236993   -0.083333  0.044470          -0.7287         0.46621  
-## 5 (4)   0.223952   -0.333333  0.166388           1.3662         0.17187  
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
-<pre><code>## Spatial correlogram for pneuShp[[i]]$SMR 
-## method: Moran&#39;s I
-##          estimate expectation   variance standard deviate Pr(I) two sided
-## 1 (19)  0.2211004  -0.0555556  0.0322656           1.5402          0.1235
-## 2 (17)  0.0270234  -0.0625000  0.0293030           0.5230          0.6010
-## 3 (17) -0.3003826  -0.0625000  0.0344592          -1.2815          0.2000
-## 4 (9)  -0.1204556  -0.1250000  0.0529553           0.0197          0.9842
-## 5 (5)   0.0049383  -0.2500000 -0.0738962               NA              NA</code></pre>
-<pre><code>## Spatial correlogram for pneuShp[[i]]$SMR 
-## method: Moran&#39;s I
-##          estimate expectation   variance standard deviate Pr(I) two sided    
-## 1 (19)  0.4236458  -0.0555556  0.0151020           3.8994       9.642e-05 ***
-## 2 (19) -0.1129944  -0.0555556  0.0072093          -0.6765         0.49873    
-## 3 (19) -0.2985115  -0.0555556  0.0118570          -2.2312         0.02567 *  
-## 4 (19) -0.3850834  -0.0555556  0.0283369          -1.9576         0.05028 .  
-## 5 (12) -0.1655050  -0.0909091  0.0568904          -0.3127         0.75447    
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
-<pre><code>## Spatial correlogram for pneuShp[[i]]$SMR 
-## method: Moran&#39;s I
-##         estimate expectation  variance standard deviate Pr(I) two sided  
-## 1 (19)  0.199585   -0.055556  0.018520           1.8748         0.06081 .
-## 2 (19)  0.085980   -0.055556  0.010725           1.3667         0.17173  
-## 3 (19) -0.167287   -0.055556  0.014706          -0.9214         0.35687  
-## 4 (13) -0.309112   -0.083333  0.035377          -1.2004         0.22999  
-## 5 (4)  -0.261681   -0.333333 -0.366860               NA              NA  
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAqAAAAHgCAMAAABNUi8GAAAC8VBMVEUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADF5N8AAAA+3RSTlMAAQIDBAUGBwgJCgsMDQ4PEBESExQVFhcYGRobHB0eHyAhIiMkJSYnKCkqKywtLi8wMTIzNDU2Nzg5Ojs8PT5AQUJDREVGR0hJSktMTU5PUFFUVVZXWFlaW1xdXl9gYWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXp8fX5/gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXmJmam5ydnp+goaKjpKWmp6ipqqusrq+wsbKztLW2t7i5uru8vb6/wMHCw8TFxsfIycrLzM3Oz9DR0tPU1dbX2Nna29zd3t/g4eLj5OXm5+jp6uvs7e7v8PHy8/T19vf4+fr7/P3+/0zQEKoAAAAJcEhZcwAADsMAAA7DAcdvqGQAACAASURBVHic7d15YBRVngfwlxBMOAIEHEWCArIMIzrSXBKFFZCV8QAPFAEVVI5xZhVGjpnBdUSdYWY9ENFdhhVwBxbWA3CAoIThWEVHEXTGARQQAwlXMARJSHfS4ffXVnVXdTp0dXW916/r6P5+/rAfqX6pytdfdR1d9YoxAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAz2k6V7T9fseeEStd3+5dJA+eLLLmgyln+EaJ1zi+gpCfOsorAvHV1M71gXjutwB8ba7g01Szs2aSoWEArUqoR56gW6y+kl9Yg1bwzpOOIE0WzGnida2O1pomVNmowNaKhGgVqVMM/+RYqlRL9yekk9okD9z6+I/pOxk+TPY1nHqbZFdJPlfE7TUaBWJc5TkXOEznVwdDE95hmiJ1gXoj1K+y9E10U1GZtF73RFgXIxzVMxJlTAYFWP03TyYjaAaIfyj9VEt0c1WbeaM51QoFxM81R9TOevcnQJvaX3UTp7A1MD/Uj515pwoHqTbaSfMhQoD/M8FQOJip1dRE8ZeoZODVRete3QlsZNktocRAf6+G4l2u4rcHg5vcI8T/Udq4hudnQRPeWeAB3qGWqF9uSzT0Z26kPNn5BuvMML6hEJ8lR+3rme/uHsMnrJlAb67q6ioqKe2rmQZxpPi4SaKFA+ifJUzCOa5PRiekeJVn7rTE7UYx/UusR5tvyOKlo4vZjeERUo6/Dy4bqjizuxpk2GAuWQOM+pRM86uYQAAAAAAAAAAAAQ38+IZiovO4jGKC+H6Wwzp5fIhVYRdY39aeN9IAgxdXxEaxjL9RO9wtjlRCVOL5AbGRdo430gCDF1sr+nCsZuUIL+LHTJ7dNOL5AbGRdo430gCNGSKQf8u28pIWrHthK1Ui+gJeWnfd86Xn90WRfWpKkkPvTtMyeXtmHsfaIfshm0gepbsVeIRjj7N7hTqECvO0NlPaOTi7oPBCFaMFXd3tQf1wq0pVagt9VRfXkDVfxTk6YSc3VdkOiPjD1FNJGtpqn7aBjbRQ1tnf4z3Egt0D6nqbR7k+RCQveBIEQLmp+k82MKniCtQPPCBZpTTqVXMF+A3oluqjFvyy/8js4yNpzodXacfvw6zckP0t+c/jNcSYlr5Ck6qG179ORU4ftAEKIFfYi2KC+HmhboAKLykpKSc1Qd3dSu/lZ2BwpY6yDt605V2Q/Rhn/BXV/GlLhq6KtCraknxyL3gSBEC5SV+L+Vl/9rLNCdSoHeFrkyOTeqqcasbOjXE3VkyiaJplMx+yFVziV6wOk/w5VWqam9la01I8lF7gNBiBb4iLYqL9+qBfqe+p/sivAn6ArtDVFN7bB0XShmZae+lJ5U72UoJeruyLK7nRLXX7TdzujkGu8DQYiJ5Zyg8w90/GVoH3Qx0X1Z6u4oyykjv7JJKpw5L7rZJOYx6sfDsNDdiXTC6b/CnZS4emwkep41SS7qPhCEaMGkxqP4YUrr3Pka9Sj+lgBRZUXovpmoZnSBXq68OdiKsZnK62qn/wh3UuNq9VdSPyKjkou+zB4hWjDpYODzEaHzoGzy1/5dd4TPg/ZeWV5/6vP5/Zs0owuUHQ6dXw6dZ57p6B/gWqG4Lt5H9Hi8AkWIVoULFMClUKDgaihQAAAAAAAAAAAAM51nLphxmdMLAWCk+FE2qKa05ND3A51eEgADVYPZh69ls+wXdzi9JAAGaoazygHK61XVTi8JgIHiZWzbY8rrIwedXhIAA1dXbniuetVvVtQ97PSSABjpuqyCqGbzbU4vR0bocmUGKZQWW36bLOQpMc+4egQOZpDgRchTptTnyXpl1AOfzkl9OMuij6P+kV8QUrRX5hzcTm6ehlCg4qYvbGy3PloZ8n1Q5hzcDgWajGvf26Q5+YnWCKQ80JH12qy+LNPnvj59vxJFgSaj9XDd2de0Rq2cQLMG/eL3v39isNFh0siANqviMn3uNzWXMlM3SmGBtlrxZsjmTPg25PQ0rSEn0Mt30oEdOw7Qzs6x00b6tcbrX8uYlculsECzR40OmRdI2SzcQ3KBFm/tqr503bIhdhoKVLJIoOlMcoHWXhd+7XcudhoKVDIUKL+j94dfx5XHTkOBSoYC5TfLP39U0fWj5vsNxpVBgUqGAhXwwM4gUXCn0dCbKFDJUKBCcgs75RpOQIFKhgKVCwUqGQpULhSoZChQuVCgkqFA5cgaHP5e80n9iw8UqBwoUDlaF4evDNmtX82EAm30XxH8s0CBxpKSJ1+BFurXqF/j01uX88/cdhYLdF0E/yxQoLGk5MlVoDl/169Rr67VW3tb88/dbtjEy+Ghg6SNH8lblrjaFWg6d9BbrYR+EQpUDhRoEz0qKjUNtXpru9Bvkplnt6HdjH6MApXLCwXaqHRBcv0l5bmwkLVdR0TvtomdhgKVCwUqgHzs1bKb2g4rfyF2GgpULhSoAKVAD09QXicajCWEApULBSpAKdDaIuX1eoNiRIHKhQIVQOuXn7lXeR1dHjsNBSpXJM/Qs0n5ZWSBzlfcrby+sTJ2GgpULj1P9cGuIv3TuEBzB14qMAsUaDxJ5Rl+9LBA/zQt0KUPsbwvGvy38M9iZN28sBWbtMa8p9vy/xp34y5Q/jxz/nV2yLK68L/xCdrEqavZuIP5P/3M/F1NBrvq3S9ken042NmfVmiN2bMMTpd6G3eBWsszWt6z4bX77XrtB9gHjRboxP70B9bZ4D7taE0Gu/pgZ8j+TLg8jLtAreVpBEfxhvaNbV85lPWt4J9FRlwBzl2gzuWZpgV6X11gczb79XtxJpsNdoUCNZAgTxMoUGOX9G7G2ICexhMzfrAr/qN40zxTucKna4GayvjBrjw0ul1aFuiECRPuNpue8YNdcRZoojxTucKnZYFu3LjxDbPpGT/YFWeBJsozlSt8WhZoIhk/2JWHRrfjKtCWc/UvV4rf0luz4jwex5B9Bdqi/623K+JMzfTBrvgL1DTPVK7wXAXaYob+5Ur5l3rrX3nmZluBjqgIHFfFfUNmD3bFXaAJ8kzhCi/4BdSu1ULdbCvQrydnC84CBWokYZ6pWuFFv8K3t0Ajy2i5QCuF5qNK9vpFT+AuUAl5iheoyP8IWwu0cRktF+j6IpEZqZK9ftETuNd4a3lGX3zT4tVFIRv1i0WEN/Gu/wSNupTQcoE+dfKln01V8M8t2esXvYB/jbeWZ/TFN80emByyULvcTvggyQP7oAKfoDs1/DPLgE9QgTU++TxtPg/q9n1QcV7YB83y9dPcer3e6sLRX2CNT7BArvsu3u1H8eKSHo2tb+pHY+v+qf6J5j+ut97h+QWS13jT7+KD2gJW+HeKOFMt1K3mtFC3wAmhbhF1VvPMm7OrokrBH7bgaGx/c2Y0NsE1nvso3jxP0+/iA9pH/NrSfiJ2/E2o274tQt2OrRLqFmH52acvfjW2cvzsssctvj060Ez47pi7QM3zdOF38W7fxJcNYcc6sWsEhihDgRoxz9M138U3EizQZA88LBfouW5s37WMHeGfBQrUiHmervkuvpFYgSZ96sZygf79ZrZqQYs7DMZeSgQFaiRBnqbfxWsjwi4/oI8Ny3UXt50FmvzJb8sFOnES61VG50wvszWGAjWSMM/438UHtRFhz9XpY8Me5Tm/kZ6foLkzlCPo5j1F7mdHgRqQkaegNN0HPctzlWoTKFAjEvIUlKZH8Rtv4v3VrbeHT7UmO3BDehYof546FKihuacXTeO8WEQf+ibJJ6PZ+w2pXQXKn2frjy5Y4QWlaYHqXz3xz8KhC2wF2VWgAnn++IIVXlCaFqi4kecbws5Tg66q0qrwiQrLb09ag1+o2/karWH5u2PxPLGJN9b7nnuuFZnFyECfsOuGaY0+vQusU+uT4+3JOrJIqFvVr7WG9UCF80SBGum4hSoqqERgxNVkA+Xawrd5bZHm0y166yUbbpPl3sQ7l2eaFug7O3ow1mPH2/yzsDXQ5g9O1hzerbdG88zNrgL1SJ6NBI8EbCvQ6r7qf/tW888iI9Z47gL1Wp6ix6q2FWjVYPW/g07zzwIFasRjeQp/qW5bgS75anjLlsP2OvC8+PQsULvzzPlcv+y7JnIB+N/zrfd3/Sdo/pIgUf1igWcqe6tABXe1uAvU9jw76zfO+PrprSt4+rt9H5Sxdv37tROZhacKVPSDQmDwMKfyFOTuo/gfRfDPwksFKryrxVmgTuYpyN0FShH8s/BSgdr1CepknoLcXaBnjszzdQ4xeVO3od2Mfiy4U79AP89++LjeepXna0RX74NayjMOFKiBFmM2nFt7t/EV3qqFhaztOuXz4F2DK3AFAx2nn2f/7fN6a1wzjv6uPopPlKeR1tXah24D78JJ4e4CVVw6bdfpRXlxJpKPvVp2U9th5S/ETsuINZ7/IMk0TzMZkWcEx1F81j9vp/ZxpikFeniC8jrR4CYwhwK197SIwFG8WZ6qzjMXzLjM4OcoUEM/evbb/U9dGW+qUqC16niC1xuE50ygNp9Y5i5Q8zyLH2WDakpLDn0/MHYaCtTAY5989x83mEyn9cvP3Ku8ji6PneZIoHZ/NcdZoInyrBrMPnwtm2W/uCN2GgrUAB3548Iw4+nzFeodtG+sjJ2GT9BYifKsGc4qByivVxlcTIICNbAugn8W2AeNlSjP4mVs22PK6yPu2ad3d4EmIyMClfycpKsrNzxXveo3K+oejp2WEXlGSC7Q6DHVdRkRqOQCZV2XVRDVbL7NYFJG5BkhuUCnG+xTZUSgsgtUkd/G+FaVjMgzIoWb+OyRo0PmJXmbrCDPF2g8KFARBmOqt/qfN0M2C9zWIEFaFGjG7jJFSMrTbEz1Xv+QMgteaVGgXt1l6vBb/cmzZ3bqrUeFZispT7Mx1VGgklwtZ2QRQVx5FszSnzz75wV66yGh2UrK02xMdRSoAINdptYfhwfL+coDn6DySMrTbEz1NC7Qq1a9qanbrTUCKX8MjbfyTJakAjUbU93eQHvrzy/ZG3lsCtdtFVwF2n60bsFDWsMvJdD02WVKlqxdJpMx1W0NtP3H+rBxp8r11hYbhr6JkBNo+uwyJUvePn3cMdUdCpRLzpDhmhOr9ZbQyF6SAnXNLlPWYD2O/R/orf42zl/qQWf35oY/9kKBdtukO/Gl3lom9JvkBOqaXaaCjXocZfv11lrh0csFyCzQoPHOnhcKVB5Jgbpll8lxKFDJpAXq6V0meWwo0J612sHKt4EaEX6/ULeAYLdaoW51+7Q/Msh3q6aZOLtMyFPUPcZjUUWexf7ctvEi/vddoW7Fy4W6fbRQqNueqdof2UtennFWeOSZKhOXCHX75e+Eur00LfF7DKwcI9RtyxChbqbiFGgE8pQMgfJBgdoMgfKJs8sUgTwlQ6ByIU/JEKhcyFMyBCoX8pTs/sVC3WY8K9Tt+Z8LdVse/wnuZkoGC3VLCvKULLeDULdWbYW6tWsp1O0HxmfHE+mYLdQtKcgTAAAAAAAAAAAAAADSxZ2bTtPF/N1m76wuX1TA3W3aF9Wn1vbgnx1jbxP/l3Pz1RHx4ww3nyrIU7Kxc2aIBLpr2o2jS9dyd3t4TNGILQcF7o8dXxIUCHS9z+cr5J9ZMpCndEUigaruq8sR6daX+P/Gzoe7iAS6nLuLBMhTMuFAp5wS6dXulQM8z/YMyXp/ChMJ9Ext6YIE17/LhzwlEw207f65/J1GBWl/d+5eP9/ERAK9+96iieXvcndLEvKUTDDQvM3FAluk/GuGF396EWen7seuEApUdRMZPow8hZCnZGKB5r63VXBwiVb1ozh7jDkfDAapgf8YQtGWhop0SwLylEwo0NwNH7YWnF/bBqPHDJn2uEYRnH6FyNyGeuMTFHnGU+C7n4b4eC/Lzvpz+Y0+n49328IW3znwju2Hha4dF9gkLbmr6MEjAk+JTAbylGx86PnDRZy98sKPLe7KO7clpYGylUInlkUCXVke+Ga+2J0UwpAnAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOGer2OP6IA7kKRkClQt5SoZA5UKekqmBTthdc+TFPMbar6k9MNJfxO7d6z/xutML5lHIUzI10Ek3dxu2fw5jK3b17ftBQ9EldWMLr33E6QXzKOQpmb5JGreLFQSvZ+x6KuodaO/sMnkZ8pRMDbTXqr3HKitY//MXMZZ7vqjZlso/jc1zesE8CnlKpgTavOzV3oXjq9gALVCWPezfD32R6/SSeRPylEwJtCe1YGxWVWSTpP64TcNAp5fMm5CnZEqgbc6NZL2OVCk79Z/1UXbqBw6Y3btwsv9Sp5fMm5CnZOo+0+hvjnz4uBJoh7X+g3cFfT3fP1W7+3anF8yjkGeK+RowCqpMyFOiG2657LpPhIbvByPIU7Khe/1Hl2CFlwZ5AgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgFv8ZOne0zV7XrhEbbd/uTRQvvgypXXpgo8DRGNY0yYkljBPRf4RonXOLaK3rKOQwx0Ya7s31CztyFj/UCsUaFQTEkuYp2IBoUAtW/PGkI4jThDNZux5ooXdniZaxlj3F0a/rAUa1YTEEubJ2ICGahSoZQXqf35F9J+MnSR/Hss6TrUt1J/NaazKOShQyxLnmfM5TUeB8nmG6AnWhWiP0v4L0XXqz1Cg4kzznEXvdEWBculxmk5ezAYQ7VD+sZoo9DxJFKgw0zy71ZzphALl0vsonb2BqYF+pPxrDQo0SeZ5bqSfMhQoj6Fn6JT6EHNtk7QFm/jkmOc5iA708d1KtN1X4OhSesc9ATrUM9QK7dRnn8RBUlIS5PkT0o13cim9Y0oDfXdXUVFRT+20yDOh0yLNOnacRzSl46VNmpBYojxRoJxKtLjWNTmx3FX7abBJExJLmKcK+6DWRQXKOrx8uO7o4k4MBSouYZ6MoUABAAAAAAAAAADstYqoq+EE7baEnxHNVP61I/w93WE628zOpUtriNaKuAWq3ZbgI1rDWK6f6BXGLicqsXfx0hmitSJegeq3JWR/TxWM3aBU62eMjSF62ublS2OI1opQgV53hsp6qs2hb585ubQNi74t4X2iH7IZtIHqW7FXiEY4vcCuNOWAf/ctJUTt2FaiVox9TKT8tO9bx+uPLuvCmjSjUka0FqgF2uc0lXYPNavrgkR/ZNG3JTxFNJGtpqn7aBjbRQ1tnV5gN5qqfs1ef1wr0JZagd5WR/XlDVTxT02aUSkjWguUvEaeooPaur0tv/A7OtvktoThRK+z4/Tj12lOfpD+5vTyulHzk3R+TMETpBVoXrhAc8qp9ArmC9A70c3olBGtBUpeNfRVoda8OXQ1TkH0bQmtg7SvO1VlP0Qb/iV0ryJcqA/RFuXlUNMCHUBUXlJSco6qo5vRKSNaC1apW6e3srWmsglaT9SxyW0Ju0jZHS1mP6TKuUQPOL28bqR8Ev638vJ/jQW6UynQ2yJXJudGNaNSRrRWKHn9JbzbqR3Qr1Oia3LVt7L7XkpPqjcwlBJ1d3hxXclHtFV5+VYt0PfU/2RXhD9BV2hviGpGpYxorVDy6rGR6HkWt0DHqK/DQncn0gmnF9eVck7Q+Qc6/jK0D7qY6L4sdXeU5ZSRX9mYF86cF91sUqCINjE1r1Z/JXU9jo6ONV71fbl6IXgrxmYqr6udXFT3mtR4FD9MaZ07X6Mexd8SIKqsCN2SFNWMThnRJhbK6+J9RI/HK1B2OHQmOXRGeaZzC+pqkw4GPh8ROg/KJn/t33VH+Dxo75Xl9ac+n9+/SbNJyogW7BMuUACXQoGCq6FAAQAAAAAAAAAAAAAAAAAAwKrOMxfMuMzphQAwUvwoG1RTWnLo+4EGE7tcmUEKUx828uRXNZh9+Fo2y35xR+y0HoGDGSR4kZxE40OeAmqGs8oByutV1bHTev1Dyiw84lyLVM8BeQooXsa2Paa8PnIwdhoClQt5Cri6csNz1at+s6Lu4dhpvU5sCvuyTGtsWp++B1M2FCjyFNB1WQVRzebbDCb1OjA8rLhMawy/qbmcubqQDQWKPMXkt8ky/Hlkk/T619Lm5V42buKRpxwIVC7kmYRFHze2mz04OWTuMe0HCFQKFGgSpi9sbLdYuCikuF77AQJNSvado0NmlGs/QJ5yjPRrDQSalFbL3wz5ACu8gKxBv/j9758YbHSYhAKVC3kKuHwnHdix4wDt7Bw7DYHKhTwFFG/tqr503bIhdhoClQt5Cqi9Lvza71zsNAQqF/IUcPT+8Ou48thpCFQu5Clgln/+qKLrR833GwxhikDlQp4iHtgZJAruNHrKQ2OgJGderubaAh05WjP7Sb11V3YKFk8yi3n+V0Tct+QWdso1nBAJlCgDKtRaoBbyjEusQHOWvqk5dkpvLW3JP3e7WSzQdRH8s9ADDT1xg7+7x1gLVEaeopv4jR8JdXOIjd8koUDlQIFKkn+0MuRsg/aDTKhPFKhkqcyzdUHIfThIkgoFKhlOi8gVddAp1B8FegEUqBzNJoSvr11YF/636C49CvQCKFA59OtrN4YvtyPRg04U6AXSuEAvm63b+Fut4bdtE49PUEnSuEC7zdP5S7RGAPugUqFA5Tg9TWvgKF4urjxzB14qMAsUaDzO5JmmBbr0IZb3RYP/Fv5ZoECNJMgzhbfQpGmBnrqajTuY/9PP+GeBAjVinmcqb6Hx1vd5lgs00In96Q+ss8EV84mgQI2Y55nCW2g8dkWE5QLdN7Z95VDWt8L6r86dGz6ufTsTbpPlLlDzPFN3Cw3v6dM2BZqOP9BbrQVmK8xygd5XF9iczX79nvVf3fwX4TODy+q0wXLfPKQPm9tNaFndjLtAzfNM4S00fPXZ/nilpj6gt/Ybj8EVre0s/QTxmvl660GRpeU46LykdzPGBvTkn8XIoDZY7qkafdjcPZfz/xp34z+KN80zlbfQCG7hd63mePMPfqefID6zU29NF5qtnQM3pDPZ50Et3UJj61E8V4E2Kl0g1C3CYp4TJky422y6paPOdMZZoInyZFZuoUGBNtq4ceMbZtMtHXWmM84CTZSnGRSoAEtHneksRV91Rg9n2fxx/aBT+wEKtIkW/W+9XWE80dJRZzrjL1DTPHXRw1nmPSvntF2aFuiIisBxlfFUS0ed6Yy7QM3zNINNvKGvJ5ve5W/lqJNLzoJFmu0f661X3XsfN3eBJsjTfd/Fu71AKxO9IfFRJ5+xkzVfHtRb45oJ/SY7cBeoeZ6mZ0UCMU/54PLpHqFu+z8Q6nZitVC3iFqrBbq+yOIbYwNNchPviatvuAvUPE/TsyL12tORyms2iThVJdTt+5NC3WoPC3WLsHwB+FMnX/rZVIX5u6KPOvWvce9DgRowz9P0rEgDXaiW55u5NN3E79SYvyv6qDO/7IKBGwSlZ4Ga55nKsyJpWqDisInnl8qzIplZoCn8Lt6WAm2nX0vWuYPeasXT34nv4rlk3R970DmB56DT7QWaN2dXRZXCeKrpUWf9m0lpHC4wdTb4A5rzQb11kucX1O3WGlZ36s3zZNLPiuS8rJ+s2/aR3lrIszK5vUBf/Gps5fjZZY8bTzU96qwbnZTPv+Z59wMTNJMe1lv38/Sv2MC3dJrqZVrD6n3x5nmaceiLD8Gr9Gwr0LIh7Fgnds1246mp/C6eKxmjC2z3JL7AtpFgoNybePM8zThToKJ3ithWoOe6sX3XMnbEeGoKjzpFk7F3k8RdoOZ5mnGkQIUH2rGtQP9+M1u1oMUdB42npu6oUzgZlxeoeZ5m8AlqaOIk1quMzsW7zFb6UWeENz5BI8toNdAEeRq46IkLLrezl8v3QXNntGasec82Ju+Q/F18hB330DQSC7RxLbIYaOI8Y1z0bxdcbmcvtx/Fn+U50mgiA04sR+2HWA3UuTwFub1AN94kOosMKFD+T1AH8xTk8l0mNvf0ommJLxaJFnm+eZB36ZryQoHyB8qfpy4TCpR/hbd4sUi07DvDp67nJblT74kClXyxiJkMKFCBXaYkZMIm3pHxQe3l9k9Qxnrfc8+1IjNDgRpzKk9BgnkKnoPh3wftuIUqKqhEYMRVhwqU3F2gzuUpSKxAkx5Lz3KBvrOjB2M9drzNPwuxQLOf1Mf0+aZcbz1pfKLVkGgwdhWo3XkmTahAk3/8peUCre6r/rdvNf8sBAv0cX1UtGX/o7eeuMhyd+Fk7CpQu/NMmvAnaHKztVygVYPV/w46zT8L5y5uEOloV4F6LE/xfVC7TtQv+Wp4y5bD9ibzfHNbuX0T77U8Xf9NUv6SIFH9Yq77IMKcusDW3QdJnsvT7QXKWLv+/dqJzMJbgQp+8AqcZsqMPG0q0B9F8M/CU4GK7rpyFqhInjGDh9nL3QXaOEYAx+/u3S9kekBs0ZIkflpEpEI5C1Qkz5jhF+3Q/q/6d7I1lXprqw230ERYLNAzR+b5OofEf0/nmQtmXBb179bbw3/P/iQvFhHk6k9QK3nGY+8W6cf9NDffqLe68/S3qUBbjNlwbu3d8c+TFz/KBtWUlhz6fmDsNE9t4m3aB02Up+rCFV7nreEs7TtIunTartOL8uJMrBrMPnwtm2W/uCN2mrcK1Lbv4k3zdOEKL8jGo/isf95O7eNMqxnOKgcor1cZfDOCAjVmlqcLV3hBthXoj579dv9TV8abWryMbXtMeX3E4C5FFKgR8zxduMILsqlAH/vku/+4wWT61ZUbnqte9ZsVdQ/HTkOBxkqUpwtXeEF2nWY68seFYXHe0HVZBVHN5tsMJqFAYyXK04UrvCCbCnRdRPz35LcxPj9ma6Dta2NGd6Vj7hv6JmGe7lvhBbll+EUTGRFoCm75cMUKnzSXFWiTIcA1GRFo+t+TJMhlBTrdYJ8qIwK14UlzuozIMwKb+Au4q0AzdoWPSOEQ4K13OPpdvCB3FagRFKgAwyHAtesMRn8jZRY2cUmBGqzwLRaGB+4uduZyD4AAoQAABENJREFUO0EuKVCzIcB7/UPKLGzCFWizK3VnntEalp+MZspohW82Ifzog7kCz/d0jksK1GwI8DQu0IEHDmr8R7VGnZRAM3SFNyCpQM2GAEeg/DJ0hTcgqUDNhgBHoPywwutkHXSaDAGOQPlhhdfJOysSdwhwLwSaMyT28dFCI3vZ8KQ55Cmqe3PDH3sh0G6Rxz+f+FJvLRP6TdIC9fQK78I8FUHje2i9EKg8EgP18AovDwpUMomBIk9mS4H2rNXup/42UCPC7xfqFhDsVivUrW6f9kcGOYaIRJ5xpSJPdk++4Y+zfNr91M9tGy/if98V6la8XKjbRwuFuu2Zqv2RveTlGadAkWeqTFwi1O2XvxPq9tK0xO8xsHKMULctQ4S6mYqzwkcgT8kQqFzIUzIEKhfylAyByoU8JUOgciFPyRCoXMhTsvsXC3Wb8axQt+d/LtRtOccT3KOUDBbqlhTkKVluB6FurdoKdWvXUqjbD4y/X0ykY7ZQt6QgTwAAAAAAAAAAAAAASBd3bjpNF/N3m72zunxRAXe3aV9Un1rbg392jL1N/F/OzVdHGo83fH+KIE/Jxs6ZIRLormk3ji5dy93t4TFFI7Yc5BmcXjO+JCgQ6Hqfz1fIP7NkIE/pikQCVd1XlyPSrS/x/42dD3cRCXQ5dxcJkKdkwoFOOSXSq90rB5rx9sl6fwoTCfRMbemCBHcQyYc8JRMNtO3+ufydRgVpP9djeUN+vomJBHr3vUUTy9/l7pYk5CmZYKB5m4sFtkj51wwv/vQizk7dj10hFKjqJuom1E8c8pRMLNDc97YKDi7Rqn4UZ48x54PBIDXwH0Mo2tJQkW5JQJ6SCQWau+HD1oLza9tg9KA20x7XKILTrxCZ21BvfIIiz3gKfPfTEB/vZdlZfy6/0efz8W5b2OI7B96x/bDQteMCm6QldxU9eMTkKZGpgDwlGx96bmYRZ6+88OM2u/LObUlpoGyl0IllkUBXlge+mS92J4Uw5AkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADO2Sr2uD6IA3lKhkDlQp6SIVC5kKdkaqATdtcceTGPsfZrag+M9Bexe/f6T7zu9IJ5FPKUTA100s3dhu2fw9iKXX37ftBQdEnd2MJrH3F6wTwKeUqmb5LG7WIFwesZu56KegfaO7tMXoY8JVMD7bVq77HKCtb//EWM5Z4varal8k9j85xeMI9CnpIpgTYve7V34fgqNkALlGUP+/dDX+Q6vWTehDwlUwLtSS0Ym1UV2SSpP27TMNDpJfMm5CmZEmibcyNZryNVyk79Z32UnfqBA2b3Lpzsv9TpJfMm5CmZus80+psjHz6uBNphrf/gXUFfz/dP1e6+3ekF8yjkmWK+BoyCKhPylOiGWy677hOh4fvBCPKUbOhe/9ElWOGlQZ4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAK7y/1OK8YR8u7kTAAAAAElFTkSuQmCC" /><!-- --></p>
+<p><img src="data:image/png;base64,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" /><!-- --> We see that in 2004 and 2011 the 3rd order matrices are statistically significant. We will add the lagged variable as covariates to include them in the spatial autorregresive (SAR) models.</p>
+<pre class="r"><code># Define spatial lag variables
+lagQueenW3 &lt;- nblag(queenW$pneu04, 3)[[3]]
+lagKn4W3 &lt;- nblag(kn4W$pneu11, 3)[[3]]
+
+# Add spatial lags to original data
+pneuShp$pneu04$lag3SMR &lt;- lag.listw(nb2listw(lagQueenW3), pneuShp$pneu04$SMR)
+pneuShp$pneu11$lag3SMR &lt;- lag.listw(nb2listw(lagKn4W3), pneuShp$pneu11$SMR)</code></pre>
+</div>
+<div id="global-analysis" class="section level3">
+<h3><span class="header-section-number">3.1.3</span> Global Analysis</h3>
+<p>As an essential condition of the SAR models, the independent variable (SMR), dependent variables (covariates) or distrubances (error term) must exhibit spatial autocorrelation. This spatial autocorrelation can be present across study area (Global) or in specific regions (Local). The former can be found using both the Moran’s I and Getid’s Ordstatistics.</p>
+<p>We will assess the presence of global spatial autocorrelation in our independent variable using the global Moran’s I.</p>
+<pre class="r"><code># Moran&#39;s I
+moranI &lt;- lapply(1:length(pneuNames), function(x) {moran.test(pneuShp[[x]]$SMR, nb2listw(get(spatialW[[x]])[[x]]))})
+names(moranI) &lt;- pneuNames
+moranI</code></pre>
+<pre><code>## $pneu04
+## 
+##  Moran I test under randomisation
+## 
+## data:  pneuShp[[x]]$SMR  
+## weights: nb2listw(get(spatialW[[x]])[[x]])    
+## 
+## Moran I statistic standard deviate = 1.9898, p-value = 0.02331
+## alternative hypothesis: greater
+## sample estimates:
+## Moran I statistic       Expectation          Variance 
+##        0.23413855       -0.05555556        0.02119646 
+## 
+## 
+## $pneu07
+## 
+##  Moran I test under randomisation
+## 
+## data:  pneuShp[[x]]$SMR  
+## weights: nb2listw(get(spatialW[[x]])[[x]])    
+## 
+## Moran I statistic standard deviate = 1.5402, p-value = 0.06176
+## alternative hypothesis: greater
+## sample estimates:
+## Moran I statistic       Expectation          Variance 
+##        0.22110039       -0.05555556        0.03226555 
+## 
+## 
+## $pneu11
+## 
+##  Moran I test under randomisation
+## 
+## data:  pneuShp[[x]]$SMR  
+## weights: nb2listw(get(spatialW[[x]])[[x]])    
+## 
+## Moran I statistic standard deviate = 3.8994, p-value = 4.821e-05
+## alternative hypothesis: greater
+## sample estimates:
+## Moran I statistic       Expectation          Variance 
+##        0.42364583       -0.05555556        0.01510198 
+## 
+## 
+## $pneu14
+## 
+##  Moran I test under randomisation
+## 
+## data:  pneuShp[[x]]$SMR  
+## weights: nb2listw(get(spatialW[[x]])[[x]])    
+## 
+## Moran I statistic standard deviate = 1.8748, p-value = 0.03041
+## alternative hypothesis: greater
+## sample estimates:
+## Moran I statistic       Expectation          Variance 
+##        0.19958513       -0.05555556        0.01851956</code></pre>
+<p>As we can see, all years except 2007 exhibit global spatial autocorrelation using a significance level of <span class="math inline">\(p-value\)</span> &lt; 0.05.</p>
+<p>We will corroborate this results using the Getid’s Ord statistics.</p>
+<pre class="r"><code># Getid&#39;s Ord
+getisO &lt;- lapply(1:length(pneuNames), function(x) {globalG.test(pneuShp[[x]]$SMR, nb2listw(get(spatialW[[x]])[[x]], style = &#39;B&#39;))})
+names(getisO) &lt;- pneuNames
+getisO</code></pre>
+<pre><code>## $pneu04
+## 
+##  Getis-Ord global G statistic
+## 
+## data:  pneuShp[[x]]$SMR 
+## weights: nb2listw(get(spatialW[[x]])[[x]], style = &quot;B&quot;) 
+## 
+## standard deviate = 2.4654, p-value = 0.006843
+## alternative hypothesis: greater
+## sample estimates:
+## Global G statistic        Expectation           Variance 
+##       2.690322e-01       2.456140e-01       9.022585e-05 
+## 
+## 
+## $pneu07
+## 
+##  Getis-Ord global G statistic
+## 
+## data:  pneuShp[[x]]$SMR 
+## weights: nb2listw(get(spatialW[[x]])[[x]], style = &quot;B&quot;) 
+## 
+## standard deviate = 2.3359, p-value = 0.009749
+## alternative hypothesis: greater
+## sample estimates:
+## Global G statistic        Expectation           Variance 
+##       0.1191726891       0.1111111111       0.0000119107 
+## 
+## 
+## $pneu11
+## 
+##  Getis-Ord global G statistic
+## 
+## data:  pneuShp[[x]]$SMR 
+## weights: nb2listw(get(spatialW[[x]])[[x]], style = &quot;B&quot;) 
+## 
+## standard deviate = 2.6555, p-value = 0.003959
+## alternative hypothesis: greater
+## sample estimates:
+## Global G statistic        Expectation           Variance 
+##       2.480737e-01       2.222222e-01       9.476995e-05 
+## 
+## 
+## $pneu14
+## 
+##  Getis-Ord global G statistic
+## 
+## data:  pneuShp[[x]]$SMR 
+## weights: nb2listw(get(spatialW[[x]])[[x]], style = &quot;B&quot;) 
+## 
+## standard deviate = 0.14643, p-value = 0.4418
+## alternative hypothesis: greater
+## sample estimates:
+## Global G statistic        Expectation           Variance 
+##       0.2484907062       0.2456140351       0.0003859437</code></pre>
 </div>
 </div>
+</div>
+<div id="bivariate-morans-i" class="section level1">
+<h1><span class="header-section-number">4</span> Bivariate Moran’s I</h1>
+</div>
+<div id="change-column-names-data-integrity" class="section level1">
+<h1><span class="header-section-number">5</span> Change column names (data integrity)</h1>
+<p>for (y in 1:length(pneuNames)){ for(col in 77:91){ colnames(pneuShp[[y]])[col] &lt;- sub(paste0(years[[y]] ,’.*’), &quot;&quot;, colnames(pneuShp[[y]])[col]) } }</p>
+</div>
+<div id="bivariate-morans-i-p-value-and-plot" class="section level1">
+<h1><span class="header-section-number">6</span> Bivariate Moran’s I (p-value and plot)</h1>
+<p>par(resetPar()) op=par(mfrow=c(4,4), mar=c(4,4,1,1),oma=c(1,1,1,1)) for (col in c(78:87, 89:91)){ mi &lt;- moranbi.test(pneuShp<span class="math inline">\(pneu11\)</span>SMR, pneuShp<span class="math inline">\(pneu11[[col]], nb2listw(get(spatialW[[3]])[[3]]), N= 999)  moranbi.plot(pneuShp\)</span>pneu11<span class="math inline">\(SMR, pneuShp\)</span>pneu11[[col]], nb2listw(get(spatialW[[3]])[[3]]), N= 999,graph=T, quiet = T, main = paste0(‘I =’, round(mi<span class="math inline">\(Observed,3), &#39;, p-value = &#39;, mi\)</span>p.value), xlab = ‘SMR’, ylab = colnames(pneuShp$pneu11[col])[1], cex.main=0.9) } # For 2014 (For other years the variables need to be adressed for each dataset, that is, pneu’year’. e.g., pneu07)</p>
 </div>
 
 

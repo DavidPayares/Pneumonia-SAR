@@ -30,7 +30,7 @@ packages <- c('lmtest','RColorBrewer','classInt','spdep','TeachingDemos','shapef
              'stats','classInt','gridExtra','lmtest','car','MASS','caret','glmnet')
 ```
 
-For loading and/or installing the packages, you can run the following command. The packages that are installed in your machine will be automatically loaded. Those that are not installed will be installed and loaded to your R session. Remember to provide permits if linux is used.
+For loading and/or installing the packages, you can run the following command. The packages that are installed in your machine will be automatically loaded. Those that are not installed will be installed and loaded to your R session. Remember to provide permits if linux is used as operative system.
 
 
 ```r
@@ -55,7 +55,7 @@ dir <- '/mnt/d/M.Sc. Gesopatial Tecnologies/GeoMundus/GeoMundus 2019/Neumonia'
 setwd(file.path(dir))
 ```
 
-We will also use some useful functions in the exploratory analisis. Load them all from the *SpatialFunctions* folder. Remember this folder has to be in your current working directory.
+We will also use some useful functions in the exploratory analysis. Load them all from the *SpatialFunctions* folder. Remember this folder has to be in your current working directory.
 
 
 ```r
@@ -98,9 +98,9 @@ names(pneuShp) <- pneuNames
 
 # Exploratory Analysis
 
-## Spatial weights matrices
+## Spatial weights matrix
 
-One of the main aspects of any spatial autorregresive model is the contiguity matrix, also known as the spatial weights matrix ($\mathbf{W}$). This matrix encodes the spatial dependence and influence of one region with its neighbors. There are many ways to define $\mathbf{W}$. Usually, an expert can propose a potential spatial weights matrix based on their knowledge of the phenomenon (study variable). For our research, we will consider most of the parametric approaches as we do not make any assumptions about the underlying spatial structure of the SMR variable. 
+One of the main aspects of any spatial autorregresive model is the contiguity matrix, also known as the spatial weights matrix ($\mathbf{W}$). This matrix encodes the spatial dependence and influence of one region with its neighbors. There are many ways to define $\mathbf{W}$. Usually, an expert proposes a potential spatial weights matrix based on their knowledge of the phenomenon (study variable). For our research, we will consider most of the parametric matrices configurations as we do not make any assumptions about the underlying spatial structure of the SMR variable. 
 
 
 ```r
@@ -146,7 +146,7 @@ kn4W <- lapply(1:length(pneuNames), function(x) {knn2nb(knearneigh(coords[[x]], 
 names(kn4W) <- pneuNames
 ```
 
-Now we plot the matrices to check the relations among regions.
+Now we plot the matrices to check the relationships among regions.
 
 
 ```r
@@ -193,261 +193,8 @@ for (w in matrices){
   pcnm[[w]] <- aic
 }
 ```
+These are the best matrices per year based on the AIC value.
 
-```
-## 
-## 
-## AICc for the null model: -46.1368814476416 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM15 -68.77277     5
-## 
-## 
-## AICc for the null model: -55.8498077023605 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM9 -58.97563     5
-## 
-## 
-## AICc for the null model: -32.8846076165118 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM1 -48.16067     6
-## 
-## 
-## AICc for the null model: -15.1826555101499 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM15 -31.85952     6
-## 
-## 
-## AICc for the null model: -46.1368814476416 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM18 -61.15346     3
-## 
-## 
-## AICc for the null model: -55.8498077023605 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM3 -61.13476     5
-## 
-## 
-## AICc for the null model: -32.8846076165118 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM16 -48.8688     8
-## 
-## 
-## AICc for the null model: -15.1826555101499 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM16 -25.39557     6
-## 
-## 
-## AICc for the null model: -46.1368814476416 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM12 -61.19358     7
-## 
-## 
-## AICc for the null model: -55.8498077023605 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM16 -66.05321     3
-## 
-## 
-## AICc for the null model: -32.8846076165118 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM13 -62.92984     3
-## 
-## 
-## AICc for the null model: -15.1826555101499 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM3 -23.53263     4
-## 
-## 
-## AICc for the null model: -46.1368814476416 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM3 -53.70998     4
-## 
-## 
-## AICc for the null model: -55.8498077023605 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM16 -71.8989     9
-## 
-## 
-## AICc for the null model: -32.8846076165118 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM15 -55.78013     5
-## 
-## 
-## AICc for the null model: -15.1826555101499 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM8 -24.97818     2
-## 
-## 
-## AICc for the null model: -46.1368814476416 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM14 -55.85301     5
-## 
-## 
-## AICc for the null model: -55.8498077023605 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM17 -63.07068     8
-## 
-## 
-## AICc for the null model: -32.8846076165118 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM4 -57.84765     3
-## 
-## 
-## AICc for the null model: -15.1826555101499 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM8 -27.43804     2
-## 
-## 
-## AICc for the null model: -46.1368814476416 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM18 -55.71152     8
-## 
-## 
-## AICc for the null model: -55.8498077023605 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM12 -71.29338     7
-## 
-## 
-## AICc for the null model: -32.8846076165118 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM12 -59.65928     5
-## 
-## 
-## AICc for the null model: -15.1826555101499 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM16 -35.22539     6
-## 
-## 
-## AICc for the null model: -46.1368814476416 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM7 -59.24907     7
-## 
-## 
-## AICc for the null model: -55.8498077023605 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM6 -66.80696     5
-## 
-## 
-## AICc for the null model: -32.8846076165118 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM18 -56.95576     7
-## 
-## 
-## AICc for the null model: -15.1826555101499 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM18 -20.2536     6
-## 
-## 
-## AICc for the null model: -46.1368814476416 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM1 -67.48367     6
-## 
-## 
-## AICc for the null model: -55.8498077023605 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM1 -83.38051     7
-## 
-## 
-## AICc for the null model: -32.8846076165118 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM15 -58.48591     5
-## 
-## 
-## AICc for the null model: -15.1826555101499 
-## 
-## Best spatial model:
-##          AICc NbVar
-## MEM5 -42.9033    10
-## 
-## 
-## AICc for the null model: -46.1368814476416 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM1 -53.45341     4
-## 
-## 
-## AICc for the null model: -55.8498077023605 
-## 
-## Best spatial model:
-##          AICc NbVar
-## MEM1 -80.2701    10
-## 
-## 
-## AICc for the null model: -32.8846076165118 
-## 
-## Best spatial model:
-##            AICc NbVar
-## MEM11 -70.07799    10
-## 
-## 
-## AICc for the null model: -15.1826555101499 
-## 
-## Best spatial model:
-##           AICc NbVar
-## MEM4 -29.22466     5
-```
 
 ```r
 # AICs per year and matrix
@@ -468,8 +215,6 @@ pcnm
 ## kn2      -67.48367 -83.38051 -58.48591  -42.9033
 ## kn4      -53.45341  -80.2701 -70.07799 -29.22466
 ```
-These are the best matrices per year based on the AIC value.
-
 
 ```r
 # Best weights matrices per year (based on AIC)
@@ -536,7 +281,7 @@ moranp
 ## kn4      0.05294705 0.09090909 0.000999001  0.01998002
 ```
 
-And now having the matrices selected by both the PCNM method and the Moran's I, we chose our final $\mathbf{W}$'s for our study period.
+And now having the matrices selected by both the PCNM method and the Moran's I, we chose our final $\mathbf{W}$'s for our study period. We selected the matrices whose PCNM's *AIC* were the lowest and Moran's I $p-values$ were statistically significant.
 
 
 ```r
@@ -573,57 +318,177 @@ for (i in 1:length(spatialW)){
 } # Besides the first lag, the third lag is significative for 2004 and 2011
 ```
 
-```
-## Spatial correlogram for pneuShp[[i]]$SMR 
-## method: Moran's I
-##         estimate expectation  variance standard deviate Pr(I) two sided  
-## 1 (19)  0.234139   -0.055556  0.021196           1.9898         0.04661 *
-## 2 (19) -0.056797   -0.055556  0.012225          -0.0112         0.99104  
-## 3 (19) -0.360595   -0.055556  0.016844          -2.3503         0.01876 *
-## 4 (13) -0.236993   -0.083333  0.044470          -0.7287         0.46621  
-## 5 (4)   0.223952   -0.333333  0.166388           1.3662         0.17187  
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-```
-
-```
-## Spatial correlogram for pneuShp[[i]]$SMR 
-## method: Moran's I
-##          estimate expectation   variance standard deviate Pr(I) two sided
-## 1 (19)  0.2211004  -0.0555556  0.0322656           1.5402          0.1235
-## 2 (17)  0.0270234  -0.0625000  0.0293030           0.5230          0.6010
-## 3 (17) -0.3003826  -0.0625000  0.0344592          -1.2815          0.2000
-## 4 (9)  -0.1204556  -0.1250000  0.0529553           0.0197          0.9842
-## 5 (5)   0.0049383  -0.2500000 -0.0738962               NA              NA
-```
-
-```
-## Spatial correlogram for pneuShp[[i]]$SMR 
-## method: Moran's I
-##          estimate expectation   variance standard deviate Pr(I) two sided    
-## 1 (19)  0.4236458  -0.0555556  0.0151020           3.8994       9.642e-05 ***
-## 2 (19) -0.1129944  -0.0555556  0.0072093          -0.6765         0.49873    
-## 3 (19) -0.2985115  -0.0555556  0.0118570          -2.2312         0.02567 *  
-## 4 (19) -0.3850834  -0.0555556  0.0283369          -1.9576         0.05028 .  
-## 5 (12) -0.1655050  -0.0909091  0.0568904          -0.3127         0.75447    
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-```
-
-```
-## Spatial correlogram for pneuShp[[i]]$SMR 
-## method: Moran's I
-##         estimate expectation  variance standard deviate Pr(I) two sided  
-## 1 (19)  0.199585   -0.055556  0.018520           1.8748         0.06081 .
-## 2 (19)  0.085980   -0.055556  0.010725           1.3667         0.17173  
-## 3 (19) -0.167287   -0.055556  0.014706          -0.9214         0.35687  
-## 4 (13) -0.309112   -0.083333  0.035377          -1.2004         0.22999  
-## 5 (4)  -0.261681   -0.333333 -0.366860               NA              NA  
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-```
-
 ![](SAR-Pneumonia_files/figure-html/unnamed-chunk-16-1.png)<!-- -->
+We see that in 2004 and 2011 the 3rd order matrices are statistically significant. We will add the lagged variable as covariates to include them in the spatial autorregresive (SAR) models.
+
+
+```r
+# Define spatial lag variables
+lagQueenW3 <- nblag(queenW$pneu04, 3)[[3]]
+lagKn4W3 <- nblag(kn4W$pneu11, 3)[[3]]
+
+# Add spatial lags to original data
+pneuShp$pneu04$lag3SMR <- lag.listw(nb2listw(lagQueenW3), pneuShp$pneu04$SMR)
+pneuShp$pneu11$lag3SMR <- lag.listw(nb2listw(lagKn4W3), pneuShp$pneu11$SMR)
+```
+
+### Global Analysis
+
+As an essential condition of the SAR models, the independent variable (SMR), dependent variables (covariates) or distrubances (error term) must exhibit spatial autocorrelation. This spatial autocorrelation can be present across study area (Global) or in specific regions (Local). The former can be found using both the Moran's I and Getid's Ordstatistics. 
+
+We will assess the presence of global spatial autocorrelation in our independent variable using the global Moran's I.
+
+
+```r
+# Moran's I
+moranI <- lapply(1:length(pneuNames), function(x) {moran.test(pneuShp[[x]]$SMR, nb2listw(get(spatialW[[x]])[[x]]))})
+names(moranI) <- pneuNames
+moranI
+```
+
+```
+## $pneu04
+## 
+## 	Moran I test under randomisation
+## 
+## data:  pneuShp[[x]]$SMR  
+## weights: nb2listw(get(spatialW[[x]])[[x]])    
+## 
+## Moran I statistic standard deviate = 1.9898, p-value = 0.02331
+## alternative hypothesis: greater
+## sample estimates:
+## Moran I statistic       Expectation          Variance 
+##        0.23413855       -0.05555556        0.02119646 
+## 
+## 
+## $pneu07
+## 
+## 	Moran I test under randomisation
+## 
+## data:  pneuShp[[x]]$SMR  
+## weights: nb2listw(get(spatialW[[x]])[[x]])    
+## 
+## Moran I statistic standard deviate = 1.5402, p-value = 0.06176
+## alternative hypothesis: greater
+## sample estimates:
+## Moran I statistic       Expectation          Variance 
+##        0.22110039       -0.05555556        0.03226555 
+## 
+## 
+## $pneu11
+## 
+## 	Moran I test under randomisation
+## 
+## data:  pneuShp[[x]]$SMR  
+## weights: nb2listw(get(spatialW[[x]])[[x]])    
+## 
+## Moran I statistic standard deviate = 3.8994, p-value = 4.821e-05
+## alternative hypothesis: greater
+## sample estimates:
+## Moran I statistic       Expectation          Variance 
+##        0.42364583       -0.05555556        0.01510198 
+## 
+## 
+## $pneu14
+## 
+## 	Moran I test under randomisation
+## 
+## data:  pneuShp[[x]]$SMR  
+## weights: nb2listw(get(spatialW[[x]])[[x]])    
+## 
+## Moran I statistic standard deviate = 1.8748, p-value = 0.03041
+## alternative hypothesis: greater
+## sample estimates:
+## Moran I statistic       Expectation          Variance 
+##        0.19958513       -0.05555556        0.01851956
+```
+As we can see, all years except 2007 exhibit global spatial autocorrelation using a significance level of $p-value$ < 0.05.
+
+We will corroborate this results using the Getid's Ord statistics.
+
+
+
+```r
+# Getid's Ord
+getisO <- lapply(1:length(pneuNames), function(x) {globalG.test(pneuShp[[x]]$SMR, nb2listw(get(spatialW[[x]])[[x]], style = 'B'))})
+names(getisO) <- pneuNames
+getisO
+```
+
+```
+## $pneu04
+## 
+## 	Getis-Ord global G statistic
+## 
+## data:  pneuShp[[x]]$SMR 
+## weights: nb2listw(get(spatialW[[x]])[[x]], style = "B") 
+## 
+## standard deviate = 2.4654, p-value = 0.006843
+## alternative hypothesis: greater
+## sample estimates:
+## Global G statistic        Expectation           Variance 
+##       2.690322e-01       2.456140e-01       9.022585e-05 
+## 
+## 
+## $pneu07
+## 
+## 	Getis-Ord global G statistic
+## 
+## data:  pneuShp[[x]]$SMR 
+## weights: nb2listw(get(spatialW[[x]])[[x]], style = "B") 
+## 
+## standard deviate = 2.3359, p-value = 0.009749
+## alternative hypothesis: greater
+## sample estimates:
+## Global G statistic        Expectation           Variance 
+##       0.1191726891       0.1111111111       0.0000119107 
+## 
+## 
+## $pneu11
+## 
+## 	Getis-Ord global G statistic
+## 
+## data:  pneuShp[[x]]$SMR 
+## weights: nb2listw(get(spatialW[[x]])[[x]], style = "B") 
+## 
+## standard deviate = 2.6555, p-value = 0.003959
+## alternative hypothesis: greater
+## sample estimates:
+## Global G statistic        Expectation           Variance 
+##       2.480737e-01       2.222222e-01       9.476995e-05 
+## 
+## 
+## $pneu14
+## 
+## 	Getis-Ord global G statistic
+## 
+## data:  pneuShp[[x]]$SMR 
+## weights: nb2listw(get(spatialW[[x]])[[x]], style = "B") 
+## 
+## standard deviate = 0.14643, p-value = 0.4418
+## alternative hypothesis: greater
+## sample estimates:
+## Global G statistic        Expectation           Variance 
+##       0.2484907062       0.2456140351       0.0003859437
+```
+
+
+# Bivariate Moran's I
+
+# Change column names (data integrity)
+for (y in 1:length(pneuNames)){
+  for(col in 77:91){
+    colnames(pneuShp[[y]])[col] <-  sub(paste0(years[[y]] ,'.*'), "", colnames(pneuShp[[y]])[col])
+  }
+}
+
+# Bivariate Moran's I (p-value and plot)
+par(resetPar())
+op=par(mfrow=c(4,4), mar=c(4,4,1,1),oma=c(1,1,1,1))
+for (col in c(78:87, 89:91)){
+  mi <- moranbi.test(pneuShp$pneu11$SMR, pneuShp$pneu11[[col]], nb2listw(get(spatialW[[3]])[[3]]), N= 999)
+  moranbi.plot(pneuShp$pneu11$SMR, pneuShp$pneu11[[col]], nb2listw(get(spatialW[[3]])[[3]]), N= 999,graph=T, quiet = T, main = paste0('I = ', round(mi$Observed,3), ', p-value = ', mi$p.value), xlab = 'SMR', ylab = colnames(pneuShp$pneu11[col])[1], cex.main=0.9)
+} # For 2014 (For other years the variables need to be adressed for each dataset, that is, pneu'year'.  e.g., pneu07)
 
 
 

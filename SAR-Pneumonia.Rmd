@@ -29,7 +29,7 @@ packages <- c('lmtest','RColorBrewer','classInt','spdep','TeachingDemos','shapef
              'stats','classInt','gridExtra','lmtest','car','MASS','caret','glmnet')
 ```
 
-For loading and/or installing the packages, you can run the following command. The packages that are installed in your machine will be automatically loaded. Those that are not installed will be installed and loaded to your R session. Remember to provide permits if linux is used.
+For loading and/or installing the packages, you can run the following command. The packages that are installed in your machine will be automatically loaded. Those that are not installed will be installed and loaded to your R session. Remember to provide permits if linux is used as operative system.
 
 ```{r, results=FALSE, message=FALSE}
 # Permits
@@ -52,7 +52,7 @@ dir <- '/mnt/d/M.Sc. Gesopatial Tecnologies/GeoMundus/GeoMundus 2019/Neumonia'
 setwd(file.path(dir))
 ```
 
-We will also use some useful functions in the exploratory analisis. Load them all from the *SpatialFunctions* folder. Remember this folder has to be in your current working directory.
+We will also use some useful functions in the exploratory analysis. Load them all from the *SpatialFunctions* folder. Remember this folder has to be in your current working directory.
 
 ```{r}
 # Load some useful functions
@@ -91,9 +91,9 @@ names(pneuShp) <- pneuNames
 
 # Exploratory Analysis
 
-## Spatial weights matrices
+## Spatial weights matrix
 
-One of the main aspects of any spatial autorregresive model is the contiguity matrix, also known as the spatial weights matrix ($\mathbf{W}$). This matrix encodes the spatial dependence and influence of one region with its neighbors. There are many ways to define $\mathbf{W}$. Usually, an expert can propose a potential spatial weights matrix based on their knowledge of the phenomenon (study variable). For our research, we will consider most of the parametric approaches as we do not make any assumptions about the underlying spatial structure of the SMR variable. 
+One of the main aspects of any spatial autorregresive model is the contiguity matrix, also known as the spatial weights matrix ($\mathbf{W}$). This matrix encodes the spatial dependence and influence of one region with its neighbors. There are many ways to define $\mathbf{W}$. Usually, an expert proposes a potential spatial weights matrix based on their knowledge of the phenomenon (study variable). For our research, we will consider most of the parametric matrices configurations as we do not make any assumptions about the underlying spatial structure of the SMR variable. 
 
 ```{r}
 # Contiguity criteria
@@ -138,7 +138,7 @@ kn4W <- lapply(1:length(pneuNames), function(x) {knn2nb(knearneigh(coords[[x]], 
 names(kn4W) <- pneuNames
 ```
 
-Now we plot the matrices to check the relations among regions.
+Now we plot the matrices to check the relationships among regions.
 
 ```{r}
 # Plot weights matrices
@@ -171,7 +171,7 @@ getMatrixAIC <- function(x, w){
  
 And then we will get the AIC values.
 
-```{r}
+```{r, results= FALSE, warning= FALSE}
 # empty list
 pcnm <- list()
 # Get AICs
@@ -180,14 +180,15 @@ for (w in matrices){
   pcnm[[w]] <- aic
 }
 
-# AICs per year and matrix
-pcnm <- as.data.frame(do.call(rbind, pcnm))
-names(pcnm) <- pneuNames
-pcnm
 ```
 These are the best matrices per year based on the AIC value.
 
 ```{r}
+# AICs per year and matrix
+pcnm <- as.data.frame(do.call(rbind, pcnm))
+names(pcnm) <- pneuNames
+pcnm
+
 # Best weights matrices per year (based on AIC)
 bestMatrices <- lapply(1:length(pneuNames),function(x){rownames(pcnm[which.min(pcnm[[x]]),])})
 names(bestMatrices) <- pneuNames # 2004: queen, 2007: kn2, 2011: kn4, 2014; kn2
@@ -225,7 +226,7 @@ names(moranp) <- pneuNames # 2004: queen, 2007: kn2, 2011: kn4, 2014: queen
 moranp
 ```
 
-And now having the matrices selected by both the PCNM method and the Moran's I, we chose our final $\mathbf{W}$'s for our study period.
+And now having the matrices selected by both the PCNM method and the Moran's I, we chose our final $\mathbf{W}$'s for our study period. We selected the matrices whose PCNM's *AIC* were the lowest and Moran's I $p-values$ were statistically significant.
 
 ```{r}
 # Selectec matrices based on both PCNM and Moran's I
@@ -242,6 +243,7 @@ for (i in 1:length(spatialW)){
   moran.plot(pneuShp[[i]]$SMR, nb2listw(get(spatialW[[i]])[[i]]), xlab = 'SMR', ylab = 'Spatially lagged SMR', main = paste0('20', years[[i]], '\n ', spatialW[[i]] ))
 }
 ```
+
 ### Higher order matrices
 
 We also want to know if our matrices  have statistically significant spatial lags or greater orders, that is, finding autocorrelation throughout longer distances or neighbors orders. If we find statistically significant orders of the matrices, we have to include them in the spatial autorregresive models to guarantee a proper inclusion of the spatial dependence among the regions.
@@ -257,6 +259,72 @@ for (i in 1:length(spatialW)){
 } # Besides the first lag, the third lag is significative for 2004 and 2011
 
 ```
+We see that in 2004 and 2011 the 3rd order matrices are statistically significant. We will add the lagged variable as covariates to include them in the spatial autorregresive (SAR) models.
+
+```{r}
+# Define spatial lag variables
+lagQueenW3 <- nblag(queenW$pneu04, 3)[[3]]
+lagKn4W3 <- nblag(kn4W$pneu11, 3)[[3]]
+
+# Add spatial lags to original data
+pneuShp$pneu04$lag3SMR <- lag.listw(nb2listw(lagQueenW3), pneuShp$pneu04$SMR)
+pneuShp$pneu11$lag3SMR <- lag.listw(nb2listw(lagKn4W3), pneuShp$pneu11$SMR)
+```
+
+## Global Analysis
+
+As an essential condition of the SAR models, the independent variable (SMR), dependent variables (covariates) or distrubances (error term) must exhibit spatial autocorrelation. This spatial autocorrelation can be present across study area (Global) or in specific regions (Local). The former can be found using both the Moran's I and Getis Ord statistics. 
+
+### Global Moran's I
+
+We will assess the presence of global spatial autocorrelation in our independent variable using the global Moran's I.
+
+```{r}
+# Moran's I
+moranI <- lapply(1:length(pneuNames), function(x) {moran.test(pneuShp[[x]]$SMR, nb2listw(get(spatialW[[x]])[[x]]))})
+names(moranI) <- pneuNames
+moranI
+```
+As we can see, all years except 2007 exhibit global spatial autocorrelation using a significance level of $p-value$ < 0.05.
+
+### Goblal Getis Ord
+
+We will corroborate this results using the global statistic Getis Ord statistic.
+
+
+```{r}
+# Getid's Ord
+getisO <- lapply(1:length(pneuNames), function(x) {globalG.test(pneuShp[[x]]$SMR, nb2listw(get(spatialW[[x]])[[x]], style = 'B'))})
+names(getisO) <- pneuNames
+getisO
+```
+
+Every year, except 2014, presents positive and statistically significant spatial clustering, that is, there are high values concentration in our study area. The Moran's I informed us of global spatial autocorrelation in 2014. However, it does not determine the existence of clusters of high/low values.
+
+### Bivariate Moran's I
+
+To find spatial association between the independent variable and the covariates, we compute the bivariate Moran's Index. Covariates with statistically significant degree of spatial correlation with the SMR are initial potential candidates for the spatial autorregresive models. We will calculate the Moran's I $p-value$ and plot to scrutinized the covariates that spatially correlate with the SMR. 
+
+The analysis is perform for the entier study period. However, for the sake of brevity, we will display only the results for 2014.
+
+```{r, results = FALSE, warnings = FALSE}
+# Change column names (data integrity)
+for (y in 1:length(pneuNames)){
+  for(col in 77:91){
+    colnames(pneuShp[[y]])[col] <-  sub(paste0(years[[y]] ,'.*'), "", colnames(pneuShp[[y]])[col])
+  }
+}
+
+# Bivariate Moran's I (p-value and plot)
+par(resetPar())
+op=par(mfrow=c(4,4), mar=c(4,4,1,1),oma=c(1,1,1,1))
+for (col in c(78:88, 89:90)){
+  mi <- moranbi.test(pneuShp$pneu14$SMR, pneuShp$pneu14[[col]], nb2listw(get(spatialW[[4]])[[4]]), N= 999)
+  moranbi.plot(pneuShp$pneu14$SMR, pneuShp$pneu14[[col]], nb2listw(get(spatialW[[4]])[[4]]), N= 999,graph=T, quiet = T, main = paste0('I = ', round(mi$Observed,3), ', p-value = ', mi$p.value), xlab = 'SMR', ylab = colnames(pneuShp$pneu14[col])[1], cex.main=0.9)
+} # For 2014 (For other years the variables need to be adressed for each dataset, that is, pneu'year'.  e.g., pneu07)
+```
+
+
 
 
 
