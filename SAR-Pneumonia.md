@@ -302,6 +302,7 @@ for (i in 1:length(spatialW)){
 ```
 
 ![](SAR-Pneumonia_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
+
 ### Higher order matrices
 
 We also want to know if our matrices  have statistically significant spatial lags or greater orders, that is, finding autocorrelation throughout longer distances or neighbors orders. If we find statistically significant orders of the matrices, we have to include them in the spatial autorregresive models to guarantee a proper inclusion of the spatial dependence among the regions.
@@ -332,9 +333,11 @@ pneuShp$pneu04$lag3SMR <- lag.listw(nb2listw(lagQueenW3), pneuShp$pneu04$SMR)
 pneuShp$pneu11$lag3SMR <- lag.listw(nb2listw(lagKn4W3), pneuShp$pneu11$SMR)
 ```
 
-### Global Analysis
+## Global Analysis
 
-As an essential condition of the SAR models, the independent variable (SMR), dependent variables (covariates) or distrubances (error term) must exhibit spatial autocorrelation. This spatial autocorrelation can be present across study area (Global) or in specific regions (Local). The former can be found using both the Moran's I and Getid's Ordstatistics. 
+As an essential condition of the SAR models, the independent variable (SMR), dependent variables (covariates) or distrubances (error term) must exhibit spatial autocorrelation. This spatial autocorrelation can be present across study area (Global) or in specific regions (Local). The former can be found using both the Moran's I and Getis Ord statistics. 
+
+### Global Moran's I
 
 We will assess the presence of global spatial autocorrelation in our independent variable using the global Moran's I.
 
@@ -404,7 +407,9 @@ moranI
 ```
 As we can see, all years except 2007 exhibit global spatial autocorrelation using a significance level of $p-value$ < 0.05.
 
-We will corroborate this results using the Getid's Ord statistics.
+### Goblal Getis Ord
+
+We will corroborate this results using the global statistic Getis Ord statistic.
 
 
 
@@ -472,9 +477,16 @@ getisO
 ##       0.2484907062       0.2456140351       0.0003859437
 ```
 
+Every year, except 2014, presents positive and statistically significant spatial clustering, that is, there are high values concentration in our study area. The Moran's I informed us of global spatial autocorrelation in 2014. However, it does not determine the existence of clusters of high/low values.
 
-# Bivariate Moran's I
+### Bivariate Moran's I
 
+To find spatial association between the independent variable and the covariates, we compute the bivariate Moran's Index. Covariates with statistically significant degree of spatial correlation with the SMR are initial potential candidates for the spatial autorregresive models. We will calculate the Moran's I $p-value$ and plot to scrutinized the covariates that spatially correlate with the SMR. 
+
+The analysis is perform for the entier study period. However, for the sake of brevity, we will display only the results for 2014.
+
+
+```r
 # Change column names (data integrity)
 for (y in 1:length(pneuNames)){
   for(col in 77:91){
@@ -485,10 +497,15 @@ for (y in 1:length(pneuNames)){
 # Bivariate Moran's I (p-value and plot)
 par(resetPar())
 op=par(mfrow=c(4,4), mar=c(4,4,1,1),oma=c(1,1,1,1))
-for (col in c(78:87, 89:91)){
-  mi <- moranbi.test(pneuShp$pneu11$SMR, pneuShp$pneu11[[col]], nb2listw(get(spatialW[[3]])[[3]]), N= 999)
-  moranbi.plot(pneuShp$pneu11$SMR, pneuShp$pneu11[[col]], nb2listw(get(spatialW[[3]])[[3]]), N= 999,graph=T, quiet = T, main = paste0('I = ', round(mi$Observed,3), ', p-value = ', mi$p.value), xlab = 'SMR', ylab = colnames(pneuShp$pneu11[col])[1], cex.main=0.9)
+for (col in c(78:88, 89:90)){
+  mi <- moranbi.test(pneuShp$pneu14$SMR, pneuShp$pneu14[[col]], nb2listw(get(spatialW[[4]])[[4]]), N= 999)
+  moranbi.plot(pneuShp$pneu14$SMR, pneuShp$pneu14[[col]], nb2listw(get(spatialW[[4]])[[4]]), N= 999,graph=T, quiet = T, main = paste0('I = ', round(mi$Observed,3), ', p-value = ', mi$p.value), xlab = 'SMR', ylab = colnames(pneuShp$pneu14[col])[1], cex.main=0.9)
 } # For 2014 (For other years the variables need to be adressed for each dataset, that is, pneu'year'.  e.g., pneu07)
+```
+
+![](SAR-Pneumonia_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
+
+
 
 
 
