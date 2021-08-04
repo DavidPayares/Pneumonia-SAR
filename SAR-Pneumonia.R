@@ -456,11 +456,10 @@ invisible(lapply(1:length(pneuNames), function (x){
 #                   Inference                    #
 ##################################################
 
-# coeficients
-
-
 # Impacts
-lapply(1:3, function (x) {impacts(sarReg[[x]], listw = nb2listw(get(spatialW[[x]])[[x]]))}) # 2014: error models doesn't have impacts
+impactModels <- lapply(1:3, function (x) {summary(impacts(sarReg[[x]], listw = nb2listw(get(spatialW[[x]])[[x]]), R = 1000), zstats = T, short=TRUE, density = T)}) # 2014: error models doesn't have impacts
+names(impactModels) <- pneuNames[1:3]
+impactModels
 
 
 # Save variables

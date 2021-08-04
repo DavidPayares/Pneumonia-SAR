@@ -560,7 +560,7 @@ shapiro.test(residuals(olslm$pneu07)) #normal
 ```
 ## Spatial autorregresive models
 
-Now that we count with the lagged variables (see [Higher order matrices](#Higher order matrices)), the covariates associated in space with the SMR (see [Bivariate Moran's I](Bivariate Moran's I)) and the ones found by the linear model, we can define the SAR models independent variables.
+Now that we count with the lagged variables (see [Higher order matrices](#Higher-order-matrices)), the covariates associated in space with the SMR (see [Bivariate Moran's I](Bivariate-Moran's-I)) and the ones found by the linear model, we can define the SAR models independent variables.
 
 First, we add the lagged variables. Then we add the spatially autocorrelated covariates, if not present already in the linear models.
 
@@ -574,12 +574,17 @@ olsModels$pneu11 <- paste0(olsModels$pneu11, ' + lag3SMR')
 As we identified spatial autocorrelation, a model that accounts for spatial dependence has to be used. Spatial econometrics literature have developed models to incorporate the spatial dependence in different forms: (i) a spatially lagged dependent variable, (ii) spatially lagged independent variables, and (iii) a spatial structure in the error term. The simultaneous interaction of the three forms produce a spatial autorregresive model known as the General Nesting Spatial (GNS) Model. The GNS is expressed as,
 
 $$\mathbf{y}=\rho \mathbf{W}_{\mathbf{y}}+\mathbf{X} \boldsymbol{\beta}+\mathbf{W} \mathbf{X} \theta+\varepsilon \\
-\varepsilon=\lambda \mathbf{W} \varepsilon+\mathbf{u}$$(1)
-
+\varepsilon=\lambda \mathbf{W} \varepsilon+\mathbf{u} \\
+\mathbf{u}\sim \mathcal{N}(0,\,\sigma^{2})\ $$
 
 where $\mathbf{y}$ represents a vector consisting of one observation on the dependent variable for every spatial unit, $\mathbf{X}$ the matrix of independent variables, $\mathbf{W}$ is the spatial weights matrix that describes the structure of dependence between units, $\mathbf{W}_{\mathbf{y}}$ denotes spatially lagged dependent variable, $\mathbf{W}_{\mathbf{X}}$ the spatially lagged independent variable, and $\mathbf{W}\varepsilon$ the spatial interaction effects in the error term. The scalar parameters $\rho$ and $\lambda$ measure the strength of dependence between units, while $\theta$, like $\boldsymbol{\beta}$, is a vector of response parameters. $\mathbf{u}$ is a vector of independently and identically distributed disturbance terms with zero mean and variance $\sigma$.
 
-Other spatial autoregressive models can be obtained by restricting the GNS model spatial interactions, that is, omitting a form of spatial dependence. For example, the spatial lag model is a particular specification in which only the endogenous interactions are considered (spatially lagged dependent variable).
+Other spatial autoregressive models can be obtained by restricting the GNS model spatial interactions, that is, omitting a form of spatial dependence. For example, the spatial lag model is a particular specification in which only the endogenous interactions are considered (spatially lagged dependent variable \mathbf{W}_{\mathbf{y}}).
+
+\begin{equation}
+\mathbf{y}=\rho \mathbf{W}_{\mathbf{y}}+\mathbf{X} \boldsymbol{\beta} + \varepsilon \\
+\varepsilon\sim \mathcal{N}(0,\,\sigma^{2})\
+\end{equation}
 
 We employ the Lagrange Multiplier test to identify the appropriate spatial autoregressive models and their form or forms of spatial dependence.
 
@@ -591,7 +596,7 @@ lagrange <- lapply(1:length(pneuNames), function(x) {lagMul <- summary(lm.LMtest
 lagrange # Lagrange Multipliers suggests a Lag model for every year
 ```
 
-However, Lagrange Multiplier test ignores models with exogenous spatial interaction (spatially lagged independent variables). We support its results with the Akaike information criterion (AIC) for the seven possible spatial models.
+However, Lagrange Multiplier test ignores models with exogenous spatial interaction (spatially lagged independent variables). We support its results with the Akaike information criterion (AIC) for the seven possible spatial models fitted using the Maximum likelihood estimation.
 
 First, we define a function to build all the SAR models. For further details about the models refer to [The SLX Model (Halleck et al.)](https://onlinelibrary.wiley.com/doi/10.1111/jors.12188).
 
@@ -686,8 +691,16 @@ invisible(lapply(1:length(pneuNames), function (x){
 
 ## Impacts
 
+If you are familiar with SAR models, you know they are difficult to interpret because the coefficients are a combination of direct and indirect effects. Direct effects are the effects of the spatial unit on itself. Indirect effects are the effects spatial units have on other spatial units, also known as spillover effects.
+
+We assess the contribution of our variables trought impacts. We compute the impacts of the models' spatial lagged covariates using a simulation scheme in which the distributions for the impact measures are calculated. We also compute z-values and $p-values$ for the impacts based on the simulations.
+
 ```{r}
-lapply(1:3, function (x) {impacts(sarReg[[x]], listw = nb2listw(get(spatialW[[x]])[[x]]))}) # 2014: error models doesn't have impacts
+# Impacts
+impactModels <- lapply(1:3, function (x) {summary(impacts(sarReg[[x]], listw = nb2listw(get(spatialW[[x]])[[x]]), R = 1000), zstats = T, short=TRUE)}) # 2014: error models doesn't have impacts
+names(impactModels) <- pneuNames[1:3]
+impactModels
+
 ```
 
 

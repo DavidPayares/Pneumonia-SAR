@@ -852,7 +852,7 @@ lapply(1:length(pneuNames), function (x){
 ## Observed Moran I      Expectation         Variance 
 ##      -0.21759796      -0.17145190       0.01176081
 ```
-The Moran's I test in the linear regression residuals concluded that only 2011 has a spatial error dependence. Although 2004, 2007 and 2014 show no evidence of residual spatial autocorrelaton, we detected spatial dependence in the outcome variable. The results from the Moran's I in both the dependent variable and the OLS residuals suggest initial spatial autorregresive model configurations that considers the nature of this dependence. For instance, in 2011 we might need a model that accounts for spatial structure in the error term.
+The Moran's I test in the linear regression residuals concluded that only 2011 present residual spatial autocorrelation. Although 2004, 2007 and 2014 show no evidence of residual spatial autocorrelaton, we detected spatial dependence in the outcome variable. The results from the Moran's I in both the dependent variable and the OLS residuals suggest initial spatial autorregresive model configurations that considers the nature of this dependence. For instance, in 2011 we might need a model that accounts for spatial structure in the error term.
 
 Now let us plot the Moran's I to visualize the results.
 
@@ -964,7 +964,7 @@ shapiro.test(residuals(olslm$pneu07)) #normal
 ```
 ## Spatial autorregresive models
 
-Now that we count with the lagged variables (see [Higher order matrices](#Higher order matrices)), the covariates associated in space with the SMR (see [Bivariate Moran's I](Bivariate Moran's I)) and the ones found by the linear model, we can define the SAR models independent variables.
+Now that we count with the lagged variables (see [Higher order matrices](#Higher-order-matrices)), the covariates associated in space with the SMR (see [Bivariate Moran's I](Bivariate-Moran's-I)) and the ones found by the linear model, we can define the SAR models independent variables.
 
 First, we add the lagged variables. Then we add the spatially autocorrelated covariates, if not present already in the linear models.
 
@@ -979,12 +979,17 @@ olsModels$pneu11 <- paste0(olsModels$pneu11, ' + lag3SMR')
 As we identified spatial autocorrelation, a model that accounts for spatial dependence has to be used. Spatial econometrics literature have developed models to incorporate the spatial dependence in different forms: (i) a spatially lagged dependent variable, (ii) spatially lagged independent variables, and (iii) a spatial structure in the error term. The simultaneous interaction of the three forms produce a spatial autorregresive model known as the General Nesting Spatial (GNS) Model. The GNS is expressed as,
 
 $$\mathbf{y}=\rho \mathbf{W}_{\mathbf{y}}+\mathbf{X} \boldsymbol{\beta}+\mathbf{W} \mathbf{X} \theta+\varepsilon \\
-\varepsilon=\lambda \mathbf{W} \varepsilon+\mathbf{u}$$(1)
-
+\varepsilon=\lambda \mathbf{W} \varepsilon+\mathbf{u} \\
+\mathbf{u}\sim \mathcal{N}(0,\,\sigma^{2})\ $$
 
 where $\mathbf{y}$ represents a vector consisting of one observation on the dependent variable for every spatial unit, $\mathbf{X}$ the matrix of independent variables, $\mathbf{W}$ is the spatial weights matrix that describes the structure of dependence between units, $\mathbf{W}_{\mathbf{y}}$ denotes spatially lagged dependent variable, $\mathbf{W}_{\mathbf{X}}$ the spatially lagged independent variable, and $\mathbf{W}\varepsilon$ the spatial interaction effects in the error term. The scalar parameters $\rho$ and $\lambda$ measure the strength of dependence between units, while $\theta$, like $\boldsymbol{\beta}$, is a vector of response parameters. $\mathbf{u}$ is a vector of independently and identically distributed disturbance terms with zero mean and variance $\sigma$.
 
-Other spatial autoregressive models can be obtained by restricting the GNS model spatial interactions, that is, omitting a form of spatial dependence. For example, the spatial lag model is a particular specification in which only the endogenous interactions are considered (spatially lagged dependent variable).
+Other spatial autoregressive models can be obtained by restricting the GNS model spatial interactions, that is, omitting a form of spatial dependence. For example, the spatial lag model is a particular specification in which only the endogenous interactions are considered (spatially lagged dependent variable \mathbf{W}_{\mathbf{y}}).
+
+\begin{equation}
+\mathbf{y}=\rho \mathbf{W}_{\mathbf{y}}+\mathbf{X} \boldsymbol{\beta} + \varepsilon \\
+\varepsilon\sim \mathcal{N}(0,\,\sigma^{2})\
+\end{equation}
 
 We employ the Lagrange Multiplier test to identify the appropriate spatial autoregressive models and their form or forms of spatial dependence.
 
@@ -1011,7 +1016,7 @@ lagrange # Lagrange Multipliers suggests a Lag model for every year
 ## [1] "LMlag"
 ```
 
-However, Lagrange Multiplier test ignores models with exogenous spatial interaction (spatially lagged independent variables). We support its results with the Akaike information criterion (AIC) for the seven possible spatial models.
+However, Lagrange Multiplier test ignores models with exogenous spatial interaction (spatially lagged independent variables). We support its results with the Akaike information criterion (AIC) for the seven possible spatial models fitted using the Maximum likelihood estimation.
 
 First, we define a function to build all the SAR models. For further details about the models refer to [The SLX Model (Halleck et al.)](https://onlinelibrary.wiley.com/doi/10.1111/jors.12188).
 
@@ -1352,13 +1357,20 @@ invisible(lapply(1:length(pneuNames), function (x){
 
 ## Impacts
 
+If you are familiar with SAR models, you know they are difficult to interpret because the coefficients are a combination of direct and indirect effects. Direct effects are the effects of the spatial unit on itself. Indirect effects are the effects spatial units have on other spatial units, also known as spillover effects.
+
+We assess the contribution of our variables trought impacts. We compute the impacts of the models' spatial lagged covariates using a simulation scheme in which the distributions for the impact measures are calculated. We also compute z-values and $p-values$ for the impacts based on the simulations.
+
 
 ```r
-lapply(1:3, function (x) {impacts(sarReg[[x]], listw = nb2listw(get(spatialW[[x]])[[x]]))}) # 2014: error models doesn't have impacts
+# Impacts
+impactModels <- lapply(1:3, function (x) {summary(impacts(sarReg[[x]], listw = nb2listw(get(spatialW[[x]])[[x]]), R = 1000), zstats = T, short=TRUE)}) # 2014: error models doesn't have impacts
+names(impactModels) <- pneuNames[1:3]
+impactModels
 ```
 
 ```
-## [[1]]
+## $pneu04
 ## Impact measures (mixed, exact):
 ##               Direct   Indirect       Total
 ## TEM      0.033057637 0.17619252  0.20925016
@@ -1367,15 +1379,64 @@ lapply(1:3, function (x) {impacts(sarReg[[x]], listw = nb2listw(get(spatialW[[x]
 ## ESC     -0.061147358 0.04054303 -0.02060433
 ## VAC      0.004716873 0.01414365  0.01886052
 ## lag3SMR -1.129283310 0.54226790 -0.58701541
+## ========================================================
+## Simulation results ( variance matrix):
+## ========================================================
+## Simulated standard errors
+##              Direct    Indirect       Total
+## TEM     0.022248261 0.027534259 0.029606795
+## NUT     0.016067636 0.023060364 0.014468576
+## CVD     0.020195578 0.030602317 0.015785720
+## ESC     0.009979834 0.022505547 0.021916316
+## VAC     0.001603976 0.002691512 0.002824084
+## lag3SMR 0.223932181 0.200449213 0.128285762
 ## 
-## [[2]]
+## Simulated z-values:
+##            Direct Indirect      Total
+## TEM      1.358113 6.483604  7.0503036
+## NUT      1.986803 2.235221  5.7689328
+## CVD      1.929253 1.995514  6.3367241
+## ESC     -6.104175 1.787794 -0.9437433
+## VAC      2.847645 5.396623  6.7606446
+## lag3SMR -5.198515 2.840103 -4.6366684
+## 
+## Simulated p-values:
+##         Direct     Indirect   Total     
+## TEM     0.1744279  8.9557e-11 1.7852e-12
+## NUT     0.0469443  0.0254028  7.9775e-09
+## CVD     0.0536994  0.0459868  2.3470e-10
+## ESC     1.0333e-09 0.0738093  0.3453    
+## VAC     0.0044044  6.7907e-08 1.3738e-11
+## lag3SMR 2.0089e-07 0.0045099  3.5407e-06
+## 
+## $pneu07
 ## Impact measures (lag, exact):
 ##                Direct     Indirect       Total
 ## log(DEP)   0.42138834 -0.025242917  0.39614542
 ## log(ESC)  -2.99465844  0.179392521 -2.81526592
 ## log(IPSE) -0.02832316  0.001696675 -0.02662648
+## ========================================================
+## Simulation results ( variance matrix):
+## ========================================================
+## Simulated standard errors
+##               Direct  Indirect      Total
+## log(DEP)  0.21917004 0.1213802 0.24709263
+## log(ESC)  0.75793881 0.7906949 0.96796486
+## log(IPSE) 0.03528195 0.0124761 0.03906829
 ## 
-## [[3]]
+## Simulated z-values:
+##               Direct   Indirect      Total
+## log(DEP)   1.9017945 -0.0944859  1.6404684
+## log(ESC)  -4.0034551  0.1524941 -3.0102309
+## log(IPSE) -0.7945346 -0.2055323 -0.7831664
+## 
+## Simulated p-values:
+##           Direct     Indirect Total    
+## log(DEP)  0.057198   0.92472  0.1009078
+## log(ESC)  6.2424e-05 0.87880  0.0026105
+## log(IPSE) 0.426884   0.83716  0.4335294
+## 
+## $pneu11
 ## Impact measures (mixed, exact):
 ##                Direct    Indirect       Total
 ## CPM     -0.0277853070 -0.12407381 -0.15185911
@@ -1384,6 +1445,35 @@ lapply(1:3, function (x) {impacts(sarReg[[x]], listw = nb2listw(get(spatialW[[x]
 ## VAC      0.0691156352  0.29292868  0.36204431
 ## ACU      0.6142287905  1.17897811  1.79320690
 ## lag3SMR  1.3562236712  2.60319614  3.95941981
+## ========================================================
+## Simulation results ( variance matrix):
+## ========================================================
+## Simulated standard errors
+##             Direct   Indirect      Total
+## CPM     0.05679750  1.0119438  1.0685379
+## CVV     2.33278067 41.6178129 43.9451767
+## IPSE    0.01113114  0.1981132  0.2092065
+## VAC     0.12004322  2.1059007  2.2250464
+## ACU     0.73059172 12.6560927 13.3719096
+## lag3SMR 1.75485684 30.3561065 32.0796863
+## 
+## Simulated z-values:
+##             Direct   Indirect      Total
+## CPM     -0.6085231 -0.2419341 -0.2614660
+## CVV     -0.5483569 -0.2306920 -0.2475834
+## IPSE    -0.1542665 -0.2533476 -0.2481218
+## VAC      0.7054217  0.2689983  0.2926522
+## ACU      0.9465266  0.2080068  0.2485866
+## lag3SMR  0.8952363  0.2049149  0.2428774
+## 
+## Simulated p-values:
+##         Direct  Indirect Total  
+## CPM     0.54284 0.80883  0.79373
+## CVV     0.58345 0.81755  0.80446
+## IPSE    0.87740 0.80000  0.80404
+## VAC     0.48055 0.78793  0.76979
+## ACU     0.34388 0.83522  0.80368
+## lag3SMR 0.37066 0.83764  0.80810
 ```
 
 
