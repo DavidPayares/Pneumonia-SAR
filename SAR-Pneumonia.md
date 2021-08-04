@@ -1,5 +1,6 @@
 ---
-title: "Penumonia SAR Models"
+title: 'Pneumonia SAR Models'
+author: 'David Payares'
 output:
   html_document:
     theme: readable
@@ -984,7 +985,7 @@ $$\mathbf{y}=\rho \mathbf{W}_{\mathbf{y}}+\mathbf{X} \boldsymbol{\beta}+\mathbf{
 
 where $\mathbf{y}$ represents a vector consisting of one observation on the dependent variable for every spatial unit, $\mathbf{X}$ the matrix of independent variables, $\mathbf{W}$ is the spatial weights matrix that describes the structure of dependence between units, $\mathbf{W}_{\mathbf{y}}$ denotes spatially lagged dependent variable, $\mathbf{W}_{\mathbf{X}}$ the spatially lagged independent variable, and $\mathbf{W}\varepsilon$ the spatial interaction effects in the error term. The scalar parameters $\rho$ and $\lambda$ measure the strength of dependence between units, while $\theta$, like $\boldsymbol{\beta}$, is a vector of response parameters. $\mathbf{u}$ is a vector of independently and identically distributed disturbance terms with zero mean and variance $\sigma$.
 
-Other spatial autoregressive models can be obtained by restricting the GNS model spatial interactions, that is, omitting a form of spatial dependence. For example, the spatial lag model is a particular specification in which only the endogenous interactions are considered (spatially lagged dependent variable \mathbf{W}_{\mathbf{y}}).
+Other spatial autoregressive models can be obtained by restricting the GNS model spatial interactions, that is, omitting a form of spatial dependence. For example, the spatial lag model is a particular specification in which only the endogenous interactions are considered (spatially lagged dependent variable $\mathbf{W}_{\mathbf{y}}$).
 
 \begin{equation}
 \mathbf{y}=\rho \mathbf{W}_{\mathbf{y}}+\mathbf{X} \boldsymbol{\beta} + \varepsilon \\
