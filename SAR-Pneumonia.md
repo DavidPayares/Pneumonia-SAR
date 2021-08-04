@@ -2,10 +2,12 @@
 title: "Penumonia SAR Models"
 output:
   html_document:
+    theme: readable
+    highlight: tango
     keep_md: yes
     toc: true
     toc_float:
-      collapsed: false
+      collapsed: true
       smooth_scroll: false
     number_sections: true
 ---
@@ -163,7 +165,7 @@ for (w in matrices){
 
 ![](SAR-Pneumonia_files/figure-html/unnamed-chunk-9-1.png)<!-- -->
 
-### Principal coordinates of neighbour matrices (PCNM)
+### Principal coordinates of neighbour matrices (PCNM) {-}
 
 Now we will evaluate the best matrix for our data. We will use the [Principal coordinates of neighbour matrices (PCNM)](https://www.sciencedirect.com/science/article/abs/pii/S0304380006000925) as our selection criteria. For further details, please refer to the PCNM method.
 
@@ -236,7 +238,7 @@ bestMatrices
 ## $pneu14
 ## [1] "kn2"
 ```
-### Moran's Index
+### Moran's Index {-}
 
 We will confirm the PCNM finding using the Moran's Index of our study variable and the spatial weights matrices. We expect to find spatial autocorrelation between the SMR and $\mathbf{W}$. We will use the Moran's I statistically significant $p-value$ to assess the matrices. 
 
@@ -303,7 +305,7 @@ for (i in 1:length(spatialW)){
 
 ![](SAR-Pneumonia_files/figure-html/unnamed-chunk-15-1.png)<!-- -->
 
-### Higher order matrices
+### Higher order matrices {-}
 
 We also want to know if our matrices  have statistically significant spatial lags or greater orders, that is, finding autocorrelation throughout longer distances or neighbors orders. If we find statistically significant orders of the matrices, we have to include them in the spatial autorregresive models to guarantee a proper inclusion of the spatial dependence among the regions.
 
@@ -335,11 +337,11 @@ pneuShp$pneu11$lag3SMR <- lag.listw(nb2listw(lagKn4W3), pneuShp$pneu11$SMR)
 
 ## Global Analysis
 
-As an essential condition of the SAR models, the independent variable (SMR), dependent variables (covariates) or distrubances (error term) must exhibit spatial autocorrelation. This spatial autocorrelation can be present across study area (Global) or in specific regions (Local). The former can be found using both the Moran's I and Getis Ord statistics. 
+As an essential condition of the SAR models, the dependent variable (SMR), independent variables (covariates) or distrubances (error term) must exhibit spatial autocorrelation. This spatial autocorrelation can be present across study area (Global) or in specific regions (Local). The former can be found using both the Moran's I and Geary's C statistics. 
 
-### Global Moran's I
+### Global Moran's I {-}
 
-We will assess the presence of global spatial autocorrelation in our independent variable using the global Moran's I.
+We will assess the presence of global spatial autocorrelation in our dependent variable using the global Moran's I.
 
 
 ```r
@@ -407,10 +409,136 @@ moranI
 ```
 As we can see, all years except 2007 exhibit global spatial autocorrelation using a significance level of $p-value$ < 0.05.
 
-### Goblal Getis Ord
+### Geary's C {-}
 
-We will corroborate this results using the global statistic Getis Ord statistic.
+Geary's C is an attempt to determine if adjacent observations of the same phenomenon are correlated locally. We will use this statistics to check for local clusters in our study area. The results are very similar to those made by the Global Moran's I. 2007 does not exhibit spatial autocorrelation. 
 
+
+
+```r
+gearyC <- lapply(1:length(pneuNames), function(x) {geary.test(pneuShp[[x]]$SMR, nb2listw(get(spatialW[[x]])[[x]]), zero.policy=F)})
+names(gearyC) <- pneuNames
+gearyC
+```
+
+```
+## $pneu04
+## 
+## 	Geary C test under randomisation
+## 
+## data:  pneuShp[[x]]$SMR 
+## weights: nb2listw(get(spatialW[[x]])[[x]]) 
+## 
+## Geary C statistic standard deviate = 1.9454, p-value = 0.02586
+## alternative hypothesis: Expectation greater than statistic
+## sample estimates:
+## Geary C statistic       Expectation          Variance 
+##        0.71801475        1.00000000        0.02101025 
+## 
+## 
+## $pneu07
+## 
+## 	Geary C test under randomisation
+## 
+## data:  pneuShp[[x]]$SMR 
+## weights: nb2listw(get(spatialW[[x]])[[x]]) 
+## 
+## Geary C statistic standard deviate = 0.50977, p-value = 0.3051
+## alternative hypothesis: Expectation greater than statistic
+## sample estimates:
+## Geary C statistic       Expectation          Variance 
+##        0.89449902        1.00000000        0.04283139 
+## 
+## 
+## $pneu11
+## 
+## 	Geary C test under randomisation
+## 
+## data:  pneuShp[[x]]$SMR 
+## weights: nb2listw(get(spatialW[[x]])[[x]]) 
+## 
+## Geary C statistic standard deviate = 3.2585, p-value = 0.0005601
+## alternative hypothesis: Expectation greater than statistic
+## sample estimates:
+## Geary C statistic       Expectation          Variance 
+##        0.55868473        1.00000000        0.01834302 
+## 
+## 
+## $pneu14
+## 
+## 	Geary C test under randomisation
+## 
+## data:  pneuShp[[x]]$SMR 
+## weights: nb2listw(get(spatialW[[x]])[[x]]) 
+## 
+## Geary C statistic standard deviate = 2.3687, p-value = 0.008926
+## alternative hypothesis: Expectation greater than statistic
+## sample estimates:
+## Geary C statistic       Expectation          Variance 
+##        0.63791091        1.00000000        0.02336808
+```
+
+
+### Bivariate Moran's I {-}
+
+To find spatial association between the dependent variable and the covariates, we compute the bivariate Moran's Index. Covariates with statistically significant degree of spatial correlation with the SMR are initial potential candidates for the spatial autorregresive models. We will calculate the Moran's I $p-value$ and plot to scrutinized the covariates that spatially correlate with the SMR. 
+
+The analysis is perform for the entier study period. However, for the sake of brevity, we will display only the results for 2014.
+
+
+```r
+# Change column names (data integrity)
+for (y in 1:length(pneuNames)){
+  for(col in 77:91){
+    colnames(pneuShp[[y]])[col] <-  sub(paste0(years[[y]] ,'.*'), "", colnames(pneuShp[[y]])[col])
+  }
+}
+
+# Bivariate Moran's I (p-value and plot)
+par(resetPar())
+op=par(mfrow=c(4,4), mar=c(4,4,1,1),oma=c(1,1,1,1))
+for (col in c(78:88, 89:90)){
+  mi <- moranbi.test(pneuShp$pneu14$SMR, pneuShp$pneu14[[col]], nb2listw(get(spatialW[[4]])[[4]]), N= 999)
+  moranbi.plot(pneuShp$pneu14$SMR, pneuShp$pneu14[[col]], nb2listw(get(spatialW[[4]])[[4]]), N= 999,graph=T, quiet = T, main = paste0('I = ', round(mi$Observed,3), ', p-value = ', mi$p.value), xlab = 'SMR', ylab = colnames(pneuShp$pneu14[col])[1], cex.main=0.9)
+} # For 2014 (For other years the variables need to be adressed for each dataset, that is, pneu'year'.  e.g., pneu07)
+
+
+# 2004: TEM, CPM, CVV, ESC.
+# 2007: NUT, IPSE
+# 2011: CPM, CVV, CVD, ESC, IPSE
+# 2014: CPM, NUT, DEP, NBI, CVV, VAC
+```
+
+![](SAR-Pneumonia_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
+CPM, NUT, DEP, NBI, CVV and VAC show bivariate spatial autocorrelation with SMR. We will consider these variables in the SAR modeling as they can contribute to explaining our dependent variable.
+
+## Local Analysis
+
+As we see in the global analysis, such statistics (Moran’s I, Geary's C) are designed to identify global spatial autocorrelation (clustering). Such clustering is a characteristic of the complete spatial pattern and does not provide an indication of the location of the clusters.
+
+Local analysis allows to assess the spatial correlation of each location with its local neighboorhood. For this analysis, we will use the Local Spatial Autocorrelation via the Moran's I and the Getis Ord statistic.
+
+The global Moran's I informed us of local spatial autocorrelation in the study period. However, it does not determine the existence of clusters of high/low values.
+
+### LISA maps (Moran's I) {-}
+
+The Local Moran statistic identifies local clusters and local spatial outliers. Local Moran's I allows for a classification of the significant locations as High-High and Low-Low spatial clusters, and High-Low and Low-High spatial outliers.
+
+We see that our data shows local clustering in the center of the city for almost every year except in 2014 wher eonly one region is statistically significant.
+
+
+```r
+invisible(lapply(1:length(pneuNames), function (x) {moran.cluster(pneuShp[[x]]$SMR, nb2listw(get(spatialW[[x]])[[x]]), zero.policy = T, pneuShp$pneu04$geometry, significant=T, main = paste0('20', years[[x]]))}))
+```
+
+![](SAR-Pneumonia_files/figure-html/unnamed-chunk-21-1.png)<!-- -->![](SAR-Pneumonia_files/figure-html/unnamed-chunk-21-2.png)<!-- -->![](SAR-Pneumonia_files/figure-html/unnamed-chunk-21-3.png)<!-- -->![](SAR-Pneumonia_files/figure-html/unnamed-chunk-21-4.png)<!-- -->
+
+
+### Getis Ord {-}
+
+We corroborate the LISA results using the local statistic Getis Ord statistic.
+
+Every year, except 2014, presents positive and statistically significant spatial clustering, that is, there are high values concentration in our study area. The results for 2014 usign Getis Ord are similar to those obtained throught the LISA Moran's I statistic, in which, spatial clustering was not found.
 
 
 ```r
@@ -476,34 +604,320 @@ getisO
 ## Global G statistic        Expectation           Variance 
 ##       0.2484907062       0.2456140351       0.0003859437
 ```
+# Spatial Autorregresive Models
 
-Every year, except 2014, presents positive and statistically significant spatial clustering, that is, there are high values concentration in our study area. The Moran's I informed us of global spatial autocorrelation in 2014. However, it does not determine the existence of clusters of high/low values.
+Albeit the exploratory analysis insinuates the existence of spatial autocorrelation in our data, it does not inform about the level of influence of the independent variables or the underlying spatial dependence structure. The former can be addressed by performing a linear regression in which the independent variables' influence over the dependet variable can be assesed.
 
-### Bivariate Moran's I
+## Linear regression model
 
-To find spatial association between the independent variable and the covariates, we compute the bivariate Moran's Index. Covariates with statistically significant degree of spatial correlation with the SMR are initial potential candidates for the spatial autorregresive models. We will calculate the Moran's I $p-value$ and plot to scrutinized the covariates that spatially correlate with the SMR. 
+We will perform three different models to find the best combination of covariates that explain the SMR. We will not assume any dependence (except the ones found in the bivariate analysis) between the independet variables and the outcome variable (SMR). We select the classic Ordinary least squeare (OLS regression) and two regularized variations, the Lasso and the Elastic Net regression. The formers reduce the risk of overfitting, the variance, the correlation effect between variables and the influence of irrelevant predictors derived in a normal OLS regression. 
 
-The analysis is perform for the entier study period. However, for the sake of brevity, we will display only the results for 2014.
+First, we will create a function that estimates, assesses and selects the best linear model among the three different regressions. For this, we use a leave one out cross-validation approach and we retain the model with the lowest Root-Mean-Square Error (RMSE) and AIC.
 
 
 ```r
-# Change column names (data integrity)
-for (y in 1:length(pneuNames)){
-  for(col in 77:91){
-    colnames(pneuShp[[y]])[col] <-  sub(paste0(years[[y]] ,'.*'), "", colnames(pneuShp[[y]])[col])
+selectLinearModel <- function(dataset, variablesNames, formula){
+  
+  # Data frame without geometry
+  noGeoData <<- as.data.frame(dataset[variablesNames])
+  noGeoData <<- noGeoData[,-ncol(noGeoData)]
+  
+  ### Variables criteria
+  
+  ### Stepwise Method
+  m <- stats::step(lm(as.formula(formula), data = noGeoData), trace=0)
+  # Get selected variables and compute regression
+  formulaStep <- paste0(variablesNames[1], ' ~ ', paste(names(m$model)[-1], collapse = ' + '))
+  steplm <- lm(as.formula(formulaStep) , data = noGeoData)
+  
+  ### Lasso method
+  lasso <- cv.glmnet(x=as.matrix(noGeoData[,-1]), y=as.matrix(noGeoData$SMR), alpha=1, nfolds = nrow(noGeoData), type.measure="mse", family="gaussian", grouped = F)
+  c <- coef(lasso, s = lasso$lambda.min)
+  lassoPredictors <- row.names(c)[which(c!=0)][-1]
+  # Get selected variables
+  formulaLasso <- paste0(variablesNames[1], ' ~ ', paste(lassoPredictors, collapse = ' + '))
+  lassolm <- lm(as.formula(formulaLasso) , data = noGeoData)
+  
+  ###  Elastic Net Method
+  # Validation method
+  train.control <- trainControl(method = "LOOCV")
+  # Select optimal parameters (alpha and lambda)
+  elastic_net <- train(as.formula(formula), data = noGeoData, method = "glmnet", trControl = train.control)
+  alpha <- elastic_net$bestTune$alpha
+  elastic <- cv.glmnet(x=as.matrix(noGeoData[,-1]), y=as.matrix(noGeoData$SMR), alpha= alpha, nfolds = nrow(noGeoData), type.measure="mse", family="gaussian", grouped = F)
+  c <- coef(elastic, s = elastic$lambda.min)
+  elasticPredictors <- row.names(c)[which(c!=0)][-1]
+  # Get selected variables
+  formulaElastic <- paste0(variablesNames[1], ' ~ ', paste(elasticPredictors, collapse = ' + '))
+  elasticlm <- lm(as.formula(formulaElastic) , data = noGeoData)
+  
+  ### Cross validation
+  
+  # stepwise (AIC)
+  stepcv <- train(as.formula(formulaStep), data = noGeoData, method = "lm", trControl = train.control)
+  # Lasso
+  lassocv <- train(as.formula(formulaLasso), data = noGeoData, method = "lm", trControl = train.control)
+  # Elastic Net
+  elasticcv <- train(as.formula(formulaElastic), data = noGeoData, method = "lm", trControl = train.control)
+  
+  RMSE <- c(stepcv$results$RMSE, lassocv$results$RMSE, elasticcv$results$RMSE)
+  
+  results <- cbind(RMSE)
+  rownames(results) <- c('stepAIC', 'lasso', 'elasticNet')
+  
+  bestCriteria <- rownames(results)[which.min(results)]
+  
+  if (bestCriteria == 'stepAIC'){
+    bestModel <- formulaStep
+  } else if (bestCriteria == 'lasso'){
+    bestModel <- formulaLasso
+  } else{
+    bestModel <- formulaElastic    
   }
+  
+  message(paste("The best criteria for selecting covariates is:", bestCriteria, "\nFormula selected model:\n", bestModel, '\n'))
+  return(bestModel)
 }
-
-# Bivariate Moran's I (p-value and plot)
-par(resetPar())
-op=par(mfrow=c(4,4), mar=c(4,4,1,1),oma=c(1,1,1,1))
-for (col in c(78:88, 89:90)){
-  mi <- moranbi.test(pneuShp$pneu14$SMR, pneuShp$pneu14[[col]], nb2listw(get(spatialW[[4]])[[4]]), N= 999)
-  moranbi.plot(pneuShp$pneu14$SMR, pneuShp$pneu14[[col]], nb2listw(get(spatialW[[4]])[[4]]), N= 999,graph=T, quiet = T, main = paste0('I = ', round(mi$Observed,3), ', p-value = ', mi$p.value), xlab = 'SMR', ylab = colnames(pneuShp$pneu14[col])[1], cex.main=0.9)
-} # For 2014 (For other years the variables need to be adressed for each dataset, that is, pneu'year'.  e.g., pneu07)
 ```
 
-![](SAR-Pneumonia_files/figure-html/unnamed-chunk-20-1.png)<!-- -->
+We define the covariates and the linear formula.
+
+
+```r
+# Variables Names
+variablesNames <- c('SMR','IDD','TEM','CPM','DEP','NUT','CVV','CVD','ESC','IPSE','VAC','NBI','ACU')
+# Set linear model
+formula <- paste0(variablesNames[1], ' ~ ', paste(variablesNames[2:length(variablesNames)], collapse = ' + '))
+```
+
+And now we use the function we just created ```selectLinearModel```. For 2004, the Lasso and Elastic Net approach could not reach convergence, so we selected the OLS model as the best model. For 2007, 2011 and 2014 the best models were selected by the Lasso approach.
+
+
+```r
+#ols Model (2004)
+model04 <- step(lm(as.formula(formula), data = pneuShp$pneu04), trace = 0)
+# Get selected variables
+formula2004 <- paste0(variablesNames[1], ' ~ ', paste(names(model04$model)[-1], collapse = ' + '))
+cat('***2004***\n')
+```
+
+```
+## ***2004***
+```
+
+```r
+message(paste0('The best criteria for selecting covariates is: stepAIC 
+Formula selected model:\n', formula2004,'\n'))
+```
+
+```
+## The best criteria for selecting covariates is: stepAIC 
+## Formula selected model:
+## SMR ~ TEM + NUT + CVD + ESC + VAC
+```
+
+```r
+# ols Models for 2007, 2011, 2014 (method failed with 2004)
+olsModels <- lapply(2:length(pneuNames), function (x){ cat(paste0('***20', years[[x]], '***\n')); selectLinearModel(dataset = pneuShp[[x]], variablesNames = variablesNames , formula = formula)})
+```
+
+```
+## ***2007***
+```
+
+```
+## The best criteria for selecting covariates is: lasso 
+## Formula selected model:
+##  SMR ~ DEP + ESC + IPSE
+```
+
+```
+## ***2011***
+```
+
+```
+## The best criteria for selecting covariates is: stepAIC 
+## Formula selected model:
+##  SMR ~ CPM + CVV + IPSE + VAC + ACU
+```
+
+```
+## ***2014***
+```
+
+```
+## The best criteria for selecting covariates is: lasso 
+## Formula selected model:
+##  SMR ~ IDD + TEM + CPM + NUT + CVV + IPSE + VAC
+```
+The outcome linear models contain potential covariates that culd explain the SMR. We will save the models for further analysis.
+
+
+```r
+# Final OLS models
+olsModels <- c(formula2004, olsModels)
+names(olsModels) <- pneuNames
+olslm <- lapply(1:length(pneuNames), function (x){lm(as.formula(olsModels[[x]]), data = pneuShp[[x]])})
+names(olslm) <- pneuNames
+```
+
+### Residuals Analysis {-}
+
+Autocorrelation in the model residuals, regardless of its nature, violates the OLS assumptions. If spatial autocorrelation is identified, a model that accounts for spatial dependence has to used instead.
+
+We will assess the linear models' residuals to find residual spatial autocorrelation and to confirm the use of spatial autorregresive models for our data.
+
+
+```r
+# Spatial autocorrelation in residuals
+lapply(1:length(pneuNames), function (x){
+  lm.morantest(olslm[[x]], nb2listw(get(spatialW[[x]])[[x]]))
+})   # only 2011 has residual spatial autocorrelation
+```
+
+```
+## [[1]]
+## 
+## 	Global Moran I for regression residuals
+## 
+## data:  
+## model: lm(formula = as.formula(olsModels[[x]]), data = pneuShp[[x]])
+## weights: nb2listw(get(spatialW[[x]])[[x]])
+## 
+## Moran I statistic standard deviate = 1.2402, p-value = 0.1074
+## alternative hypothesis: greater
+## sample estimates:
+## Observed Moran I      Expectation         Variance 
+##       0.02231240      -0.12940269       0.01496444 
+## 
+## 
+## [[2]]
+## 
+## 	Global Moran I for regression residuals
+## 
+## data:  
+## model: lm(formula = as.formula(olsModels[[x]]), data = pneuShp[[x]])
+## weights: nb2listw(get(spatialW[[x]])[[x]])
+## 
+## Moran I statistic standard deviate = 0.11585, p-value = 0.4539
+## alternative hypothesis: greater
+## sample estimates:
+## Observed Moran I      Expectation         Variance 
+##      -0.07056865      -0.09025602       0.02888145 
+## 
+## 
+## [[3]]
+## 
+## 	Global Moran I for regression residuals
+## 
+## data:  
+## model: lm(formula = as.formula(olsModels[[x]]), data = pneuShp[[x]])
+## weights: nb2listw(get(spatialW[[x]])[[x]])
+## 
+## Moran I statistic standard deviate = 2.6324, p-value = 0.00424
+## alternative hypothesis: greater
+## sample estimates:
+## Observed Moran I      Expectation         Variance 
+##       0.19844785      -0.09649925       0.01255430 
+## 
+## 
+## [[4]]
+## 
+## 	Global Moran I for regression residuals
+## 
+## data:  
+## model: lm(formula = as.formula(olsModels[[x]]), data = pneuShp[[x]])
+## weights: nb2listw(get(spatialW[[x]])[[x]])
+## 
+## Moran I statistic standard deviate = -0.42552, p-value = 0.6648
+## alternative hypothesis: greater
+## sample estimates:
+## Observed Moran I      Expectation         Variance 
+##      -0.21759796      -0.17145190       0.01176081
+```
+The Moran's I test in the linear regression residuals concluded that only 2011 has a spatial error dependence. Although 2004, 2007 and 2014 show no evidence of residual spatial autocorrelaton, we detected spatial dependence in the outcome variable. The results from the Moran's I in both the dependent variable and the OLS residuals suggest initial spatial autorregresive model configurations that considers the nature of this dependence. For instance, in 2011 we might need a model that accounts for spatial structure in the error term.
+
+Now let us plot the Moran's I to visualize the results.
+
+
+```r
+#Plot moran's I
+par(resetPar())
+par(mfrow = c(2,2))
+invisible(lapply(1:length(pneuNames), function (x){
+  moran.plot(olslm[[x]]$residuals, nb2listw(get(spatialW[[x]])[[x]]), xlab = 'SMR', ylab = 'spatially lagged residuals' , main = paste0('20', years[[x]]))
+}))
+```
+
+![](SAR-Pneumonia_files/figure-html/unnamed-chunk-28-1.png)<!-- -->
+
+
+### linear regression assumptions {-}
+
+
+```r
+par(resetPar())
+par(mfrow=c(2,2))
+invisible(lapply(1:length(pneuNames), function (x){
+  lmyear <- olslm[[x]];
+  cat(paste0('\n***** 20', years[[x]], ' *****\n'))
+  # Linearity:
+  plot(lmyear, which=c(1), main = paste0('20', years[[x]]))
+  # Residuals normality: Shapiro Wilk test
+  normality <- shapiro.test(residuals(lmyear))
+  if (normality$p.value >= 0.05) {cat('Normal\n')} else {cat('non-normal\n')}
+  # Heteroscedasticity: Breusch Pagan test
+  homos <- bptest(lmyear)
+  if (homos$p.value >= 0.05) {cat('Homocedastic\n')} else {cat('Heteroscedastic\n')}
+  # Specificity: Ramsey's RESET test
+  specif <- resettest(lmyear)
+  if (specif$p.value >= 0.05) {cat('Good specified\n')} else {cat('Poorly specified\n')}
+  # Multicolineality: VIF
+  vif <- vif(lmyear)
+  if (length(vif[vif > 10]) > 0) {cat('Multicolinearity\n')} else {cat('Non-multicolinearity\n')}
+}))  # 2007 suffers of non-normality
+```
+
+```
+## 
+## ***** 2004 *****
+```
+
+```
+## Normal
+## Homocedastic
+## Good specified
+## Non-multicolinearity
+## 
+## ***** 2007 *****
+```
+
+```
+## non-normal
+## Homocedastic
+## Good specified
+## Non-multicolinearity
+## 
+## ***** 2011 *****
+```
+
+```
+## Normal
+## Homocedastic
+## Good specified
+## Non-multicolinearity
+## 
+## ***** 2014 *****
+```
+
+![](SAR-Pneumonia_files/figure-html/unnamed-chunk-29-1.png)<!-- -->
+
+```
+## Normal
+## Homocedastic
+## Good specified
+## Non-multicolinearity
+```
 
 
 

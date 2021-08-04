@@ -231,7 +231,8 @@ gearyC
 
 ##################################################
 #                OLS Regression                  #
-##################################################
+#################################################
+
 
 selectLinearModel <- function(dataset, variablesNames, formula){
   
@@ -242,9 +243,9 @@ selectLinearModel <- function(dataset, variablesNames, formula){
   ### Variables criteria
   
   ### Stepwise Method
-  m <- olsrr::ols_step_both_aic(lm(as.formula(formula), data = noGeoData))
-  # Get selected variables
-  formulaStep <- paste0(variablesNames[1], ' ~ ', paste(m$predictors, collapse = ' + '))
+  m <- stats::step(lm(as.formula(formula), data = noGeoData), trace=0)
+  # Get selected variables and compute regression
+  formulaStep <- paste0(variablesNames[1], ' ~ ', paste(names(m$model)[-1], collapse = ' + '))
   steplm <- lm(as.formula(formulaStep) , data = noGeoData)
   
   ### Lasso method
@@ -292,7 +293,7 @@ selectLinearModel <- function(dataset, variablesNames, formula){
     bestModel <- formulaElastic    
   }
   
-  cat(paste("The best criteria for selecting covariates is:", bestCriteria, "\nFormula selected model:\n", bestModel, '\n'))
+  message(paste("The best criteria for selecting covariates is:", bestCriteria, "\nFormula selected model:\n", bestModel, '\n'))
   return(bestModel)
 }
 
@@ -302,9 +303,9 @@ variablesNames <- c('SMR','IDD','TEM','CPM','DEP','NUT','CVV','CVD','ESC','IPSE'
 formula <- paste0(variablesNames[1], ' ~ ', paste(variablesNames[2:length(variablesNames)], collapse = ' + '))
 
 #ols Model (2004)
-model04 <- ols_step_forward_aic(lm(as.formula(formula), data = pneuShp$pneu04))
+model04 <- step(lm(as.formula(formula), data = pneuShp$pneu04), trace = 0)
 # Get selected variables
-formula2004 <- paste0(variablesNames[1], ' ~ ', paste(model04$predictors, collapse = ' + '))
+formula2004 <- paste0(variablesNames[1], ' ~ ', paste(names(model04$model)[-1], collapse = ' + '))
 
 # ols Models for 2007, 2011, 2014 (method failed with 2004)
 olsModels <- lapply(2:length(pneuNames), function (x){ cat(paste0('***20', years[[x]], '***\n')); selectLinearModel(dataset = pneuShp[[x]], variablesNames = variablesNames , formula = formula)})
