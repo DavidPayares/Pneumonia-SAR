@@ -609,13 +609,14 @@ sarModels <- function(lm, data, listw){
   durSar <- lagsarlm(lm, data ,listw, Durbin = T)   # Durbin model (WY. WX)
   sacSar <- sacsarlm(lm, data ,listw)               # SARAR model (WY, We)
   slxSar <- lmSLX(lm, data, listw)                  # SLX model (WX)
+  durErrSar <- errorsarlm(lm, data, listw, etype = "emixed") 
   gnSar <-  sacsarlm(lm, data ,listw, Durbin = T)   # General Nesting (WY,WX,We)
   ols <- lm(lm, data)                               # OLS regression
   
-  sarModels <- list(lagSar, errSar, durSar, sacSar, slxSar, gnSar, ols) # All models
+  sarModels <- list(lagSar, errSar, slxSar, durSar, sacSar, durErrSar, gnSar, ols) # All models
   
   statLag <- lapply(sarModels, function(x){val <- cbind(aic = AIC(x), loglik = logLik(x)[[1]]); return(val)})
-  statLag <- as.data.frame(do.call(rbind, statLag), row.names = c('lag','error','durbin','sac','slx','gns','ols'))
+  statLag <- as.data.frame(do.call(rbind, statLag), row.names = c('lag','error','slx', 'durbin','sac','erdur','gns','ols'))
   return(statLag)
 }
 ```
@@ -634,7 +635,7 @@ Let us select the models with the lowest AIC and highest Log-likelihood. These w
 
 ```{r}
 # Get best models (based on AIC and Log Likekihood)
-bestSar <- lapply(1:length(pneuNames), function(x) {rownames(sarResults[[x]])[which.min(sarResults[[x]]$aic[1:5])]}) # No GNS or OLS
+bestSar <- lapply(1:length(pneuNames), function(x) {rownames(sarResults[[x]])[which.min(sarResults[[x]]$aic[1:6])]}) # No GNS or OLS
 bestSar
 ```
 

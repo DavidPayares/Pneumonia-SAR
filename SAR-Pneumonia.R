@@ -8,7 +8,7 @@
 packages <- c('lmtest','RColorBrewer','classInt','spdep','TeachingDemos','shapefiles','sp','maptools',
              'scatterplot3d','geoR','spatial','fBasics','car','aplpack','RODBC','ggplot2','spgrass6',
              'adespatial','RANN','ade4','olsrr','rgeos','rgdal','spdep','spgwr','GWmodel','nnet','olsrr',
-             'stats','classInt','gridExtra','lmtest','car','MASS','caret','glmnet')
+             'stats','classInt','gridExtra','lmtest','spatialreg','car','MASS','caret','glmnet')
 
 for(p in packages){
   if(!require(p,character.only = TRUE)) install.packages(p, dependencies = TRUE)
@@ -152,7 +152,7 @@ moranp <- as.data.frame(do.call(rbind, moranp))
 names(moranp) <- pneuNames # 2004: queen, 2007: kn2, 2011: kn4, 2014: queen
 moranp
 
-# Selectec matrices based on both PCNM and Moran's I
+# Select matrices based on both PCNM and Moran's I
 spatialW <- c('queenW','kn2W', 'kn4W', 'queenW')
 
 
@@ -177,8 +177,8 @@ lagQueenW3 <- nblag(queenW$pneu04, 3)[[3]]
 lagKn4W3 <- nblag(kn4W$pneu11, 3)[[3]]
 
 # Add spatial lags to original data
-pneuShp$pneu04$lag3SMR <- lag.listw(nb2listw(lagQueenW3), pneuShp$pneu04$SMR)
-pneuShp$pneu11$lag3SMR <- lag.listw(nb2listw(lagKn4W3), pneuShp$pneu11$SMR)
+pneuShp$pneu04$lag3SMR <- lag.listw(nb2listw(lagQueenW3, style = 'W'), pneuShp$pneu04$SMR)
+pneuShp$pneu11$lag3SMR <- lag.listw(nb2listw(lagKn4W3, style = 'W'), pneuShp$pneu11$SMR)
 
 
 ##################################################
@@ -234,6 +234,11 @@ gearyC
 #################################################
 
 selectLinearModel <- function(dataset, variablesNames, formula){
+  
+  # Add spatial order lag for 2004, 2011
+  if (substr(formula, nchar(formula)-6, nchar(formula)) == 'lag3SMR'){
+    variablesNames <- append(variablesNames, 'lag3SMR')
+  }
   
   # Data frame without geometry
   noGeoData <<- as.data.frame(dataset[variablesNames])
@@ -299,15 +304,13 @@ selectLinearModel <- function(dataset, variablesNames, formula){
 # Variables Names
 variablesNames <- c('SMR','IDD','TEM','CPM','DEP','NUT','CVV','CVD','ESC','IPSE','VAC','NBI','ACU')
 # Set linear model
-formula <- paste0(variablesNames[1], ' ~ ', paste(variablesNames[2:length(variablesNames)], collapse = ' + '))
+baseFormula <- paste0(variablesNames[1], ' ~ ', paste(variablesNames[2:length(variablesNames)], collapse = ' + '))
+# Add higher order spatial lags (2004, 2011)
+formulas <- c(paste0(baseFormula, ' + lag3SMR'), baseFormula, paste0(baseFormula, ' + lag3SMR'), baseFormula )
 
-#ols Model (2004)
-model04 <- step(lm(as.formula(formula), data = pneuShp$pneu04), trace = 0)
-# Get selected variables
-formula2004 <- paste0(variablesNames[1], ' ~ ', paste(names(model04$model)[-1], collapse = ' + '))
 
-# ols Models for 2007, 2011, 2014 (method failed with 2004)
-olsModels <- lapply(2:length(pneuNames), function (x){ cat(paste0('***20', years[[x]], '***\n')); selectLinearModel(dataset = pneuShp[[x]], variablesNames = variablesNames , formula = formula)})
+# ols Models
+olsModels <- lapply(1:length(pneuNames), function (x){ cat(paste0('***20', years[[x]], '***\n')); selectLinearModel(dataset = pneuShp[[x]], variablesNames = variablesNames , formula = formulas[[x]])})
 
 
 # Final OLS models
@@ -392,13 +395,14 @@ sarModels <- function(lm, data, listw){
   durSar <- lagsarlm(lm, data ,listw, Durbin = T)   # Durbin model (WY. WX)
   sacSar <- sacsarlm(lm, data ,listw)               # SARAR model (WY, We)
   slxSar <- lmSLX(lm, data, listw)                  # SLX model (WX)
+  durErrSar <- errorsarlm(lm, data, listw, etype = "emixed") 
   gnSar <-  sacsarlm(lm, data ,listw, Durbin = T)   # General Nesting (WY,WX,We)
   ols <- lm(lm, data)                               # OLS regression
   
-  sarModels <- list(lagSar, errSar, durSar, sacSar, slxSar, gnSar, ols) # All models
+  sarModels <- list(lagSar, errSar, slxSar, durSar, sacSar, durErrSar, gnSar, ols) # All models
   
   statLag <- lapply(sarModels, function(x){val <- cbind(aic = AIC(x), loglik = logLik(x)[[1]]); return(val)})
-  statLag <- as.data.frame(do.call(rbind, statLag), row.names = c('lag','error','durbin','sac','slx','gns','ols'))
+  statLag <- as.data.frame(do.call(rbind, statLag), row.names = c('lag','error','slx', 'durbin','sac','erdur','gns','ols'))
   return(statLag)
 }
 
