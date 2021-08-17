@@ -282,14 +282,14 @@ selectLinearModel <- function(dataset, variablesNames, formula){
   # Elastic Net
   elasticcv <- train(as.formula(formulaElastic), data = noGeoData, method = "lm", trControl = train.control)
   
-  RMSE <- c(stepcv$results$RMSE, lassocv$results$RMSE, elasticcv$results$RMSE)
+  RMSE <- c(AIC(stepcv$finalModel), AIC(lassocv$finalModel), AIC(elasticcv$finalModel))
   
   results <- cbind(RMSE)
-  rownames(results) <- c('stepAIC', 'lasso', 'elasticNet')
+  rownames(results) <- c('classic', 'lasso', 'elasticNet')
   
   bestCriteria <- rownames(results)[which.min(results)]
   
-  if (bestCriteria == 'stepAIC'){
+  if (bestCriteria == 'classic'){
     bestModel <- formulaStep
   } else if (bestCriteria == 'lasso'){
     bestModel <- formulaLasso
@@ -308,13 +308,10 @@ baseFormula <- paste0(variablesNames[1], ' ~ ', paste(variablesNames[2:length(va
 # Add higher order spatial lags (2004, 2011)
 formulas <- c(paste0(baseFormula, ' + lag3SMR'), baseFormula, paste0(baseFormula, ' + lag3SMR'), baseFormula )
 
-
 # ols Models
 olsModels <- lapply(1:length(pneuNames), function (x){ cat(paste0('***20', years[[x]], '***\n')); selectLinearModel(dataset = pneuShp[[x]], variablesNames = variablesNames , formula = formulas[[x]])})
 
-
 # Final OLS models
-olsModels <- c(formula2004, olsModels)
 names(olsModels) <- pneuNames
 olslm <- lapply(1:length(pneuNames), function (x){lm(as.formula(olsModels[[x]]), data = pneuShp[[x]])})
 names(olslm) <- pneuNames
@@ -374,30 +371,31 @@ shapiro.test(residuals(olslm$pneu07)) #normal
 #                  SAR Models                    #
 ##################################################
 
-# Redefine formulas to include spatial lags (2004 and 2011)
-olsModels$pneu04 <- paste0(olsModels$pneu04, ' + lag3SMR')
-olsModels$pneu11 <- paste0(olsModels$pneu11, ' + lag3SMR')
-
-# Redefine formulas to include spatially correlated covariates
-# olsModels$pneu04 <- paste0(olsModels$pneu04, ' + CPM + CVV')
-# olsModels$pneu07 <- paste0(olsModels$pneu07, ' + log(NUT)')
-# olsModels$pneu11 <- paste0(olsModels$pneu11, ' + CVD + ESC')
-# olsModels$pneu14 <- paste0(olsModels$pneu14, ' + DEP ')
-
 ## Langrange Multipliers
-lagrange <- lapply(1:length(pneuNames), function(x) {lagMul <- summary(lm.LMtests(lm(as.formula(olsModels[[x]]), data = pneuShp[[x]]), nb2listw(get(spatialW[[x]])[[x]]), test = 'all')); bestML <- names(lagMul[which.min(lagMul$results$p.value)]) ; return(bestML)}) 
+lagrange <- lapply(1:length(pneuNames), function(x) {lagMul <- summary(lm.LMtests(lm(as.formula(olsModels[[x]]), data = pneuShp[[x]]), nb2listw(get(spatialW[[x]])[[x]]), test = 'all')); print(lagMul);bestML <- names(lagMul[which.min(lagMul$results$p.value)]) ; return(bestML)}) 
 lagrange # Lagrange Multipliers suggests a Lag model for every year
 
 ## Spatial autorregresive models
 sarModels <- function(lm, data, listw){
-  lagSar <- lagsarlm(lm, data ,listw)               # Spatial lag model (WY)
-  errSar <- errorsarlm(lm, data, listw)             # Error model (We)
-  durSar <- lagsarlm(lm, data ,listw, Durbin = T)   # Durbin model (WY. WX)
-  sacSar <- sacsarlm(lm, data ,listw)               # SARAR model (WY, We)
-  slxSar <- lmSLX(lm, data, listw)                  # SLX model (WX)
-  durErrSar <- errorsarlm(lm, data, listw, etype = "emixed") 
-  gnSar <-  sacsarlm(lm, data ,listw, Durbin = T)   # General Nesting (WY,WX,We)
-  ols <- lm(lm, data)                               # OLS regression
+  
+  # remove spatial lag for models with Wx
+  cov <- unlist(strsplit(lm, split = " ~ "))[2]
+  if (substr(cov, nchar(cov)-6, nchar(cov)) == 'lag3SMR'){
+    wx <- paste0(' ~ ', substr(cov,1, nchar(cov)-10))
+  }else{
+    wx <- paste0(' ~ ', cov)
+  }
+  
+  lm <- as.formula(lm)
+  
+  lagSar <- lagsarlm(lm, data ,listw)                                   # Spatial lag model (WY)
+  errSar <- errorsarlm(lm, data, listw)                                 # Error model (We)
+  durSar <- lagsarlm(lm, data ,listw, Durbin = as.formula(wx))          # Durbin model (WY. WX)
+  sacSar <- sacsarlm(lm, data ,listw, type="sac")                       # SARAR model (WY, We)
+  slxSar <- lmSLX(lm, data, listw, Durbin = as.formula(wx))             # SLX model (WX)
+  durErrSar <- errorsarlm(lm, data, listw, Durbin = as.formula(wx))     # SDEM model (WX, We)
+  gnSar <-  sacsarlm(lm, data ,listw, Durbin = as.formula(wx))          # General Nesting (WY,WX,We)
+  ols <- lm(lm, data)                                                   # OLS regression
   
   sarModels <- list(lagSar, errSar, slxSar, durSar, sacSar, durErrSar, gnSar, ols) # All models
   
@@ -407,24 +405,24 @@ sarModels <- function(lm, data, listw){
 }
 
 # Test models
-sarResults <- lapply(1:length(pneuNames), function (x) {sarModels(as.formula(olsModels[[x]]), pneuShp[[x]], nb2listw(get(spatialW[[x]])[[x]]))})
+sarResults <- lapply(1:length(pneuNames), function (x) {sarModels(olsModels[[x]], pneuShp[[x]], nb2listw(get(spatialW[[x]])[[x]]))})
 names(sarResults) <- pneuNames
 sarResults # GNS are overfitted models (see. https://onlinelibrary.wiley.com/doi/10.1111/jors.12188)
 # 2004: durbin model, 2007: lag model, 2011: slx model, 2014: error model
 
 # Get best models (based on AIC and Log Likekihood)
-bestSar <- lapply(1:length(pneuNames), function(x) {rownames(sarResults[[x]])[which.min(sarResults[[x]]$aic[1:5])]}) # No GNS or OLS
+bestSar <- lapply(1:length(pneuNames), function(x) {rownames(sarResults[[x]])[c(1:6,8)][which.min(sarResults[[x]]$aic[c(1:6,8)])]}) # No GNS or sDEM (Overfitting)
 bestSar
 
 # Selected Models
-dur04 <- lagsarlm(as.formula(olsModels$pneu04), pneuShp$pneu04, nb2listw(queenW$pneu04), Durbin = ~ CVD + NUT + VAC + TEM) 
-lag07 <- lagsarlm(as.formula(olsModels$pneu07), pneuShp$pneu07 ,nb2listw(kn2W$pneu07))
-slx11 <- lmSLX(as.formula(olsModels$pneu11), pneuShp$pneu11, nb2listw(kn4W$pneu11), Durbin = ~  CVD + CVV) 
-err14 <- errorsarlm(as.formula(olsModels$pneu14), pneuShp$pneu14, nb2listw(queenW$pneu14))
-sarReg <- list(dur04, lag07, slx11, err14)
+erd04 <- errorsarlm(as.formula(olsModels$pneu04), pneuShp$pneu04, nb2listw(queenW$pneu04), Durbin = ~ IDD + DEP + CVV + NBI) 
+ols07 <- lm(as.formula(olsModels$pneu07), pneuShp$pneu07)
+lag11 <- lagsarlm(as.formula(olsModels$pneu11), pneuShp$pneu11, nb2listw(kn4W$pneu11)) 
+erd14 <- errorsarlm(as.formula(olsModels$pneu14), pneuShp$pneu14, nb2listw(queenW$pneu14), Durbin = ~ TEM + CPM + NUT + CVV + IPSE + VAC + NBI)
+sarReg <- list(erd04, ols07, lag11, erd14)
 
 # Models summary
-lapply(sarReg, function(x) {summary(x, Nagelkerke=T)})
+lapply(sarReg, function(x) {summary(x, Nagelkerke=T, Hausman = T)})
 
 # SAR models assumptions
 
@@ -447,7 +445,7 @@ invisible(lapply(1:length(pneuNames), function (x){
   normality <- shapiro.test(residuals(saryear))
   if (normality$p.value >= 0.05) {cat('Normal\n')} else {cat('non-normal\n')}
   # Heteroscedasticity: Breusch Pagan test
-  if (class(saryear)[1] == 'SlX') {homos <- bptest(saryear)} else { homos <- bptest.Sarlm(saryear)}
+  if (class(saryear)[1] %in% c('SlX','lm')) {homos <- bptest(saryear)} else { homos <- bptest.Sarlm(saryear)}
   if (homos$p.value >= 0.05) {cat('Homocedastic\n')} else {cat('Heteroscedastic\n')}
   # autocorrelation
   moran <- moran.test(residuals(saryear), nb2listw(get(spatialW[[x]])[[x]]))
@@ -461,8 +459,8 @@ invisible(lapply(1:length(pneuNames), function (x){
 ##################################################
 
 # Impacts
-impactModels <- lapply(1:3, function (x) {summary(impacts(sarReg[[x]], listw = nb2listw(get(spatialW[[x]])[[x]]), R = 1000), zstats = T, short=TRUE, density = T)}) # 2014: error models doesn't have impacts
-names(impactModels) <- pneuNames[1:3]
+impactModels <- lapply(c(1,3:4), function (x) {summary(impacts(sarReg[[x]], listw = nb2listw(get(spatialW[[x]])[[x]]), R = 1000), zstats = T, short=TRUE, density = T)}) # 2014: error models doesn't have impacts
+names(impactModels) <- pneuNames[c(1,3:4)]
 impactModels
 
 

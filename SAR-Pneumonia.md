@@ -636,6 +636,11 @@ First, we create a function that estimates, assesses and selects the best linear
 ```r
 selectLinearModel <- function(dataset, variablesNames, formula){
   
+  # Add spatial order lag for 2004, 2011
+  if (substr(formula, nchar(formula)-6, nchar(formula)) == 'lag3SMR'){
+    variablesNames <- append(variablesNames, 'lag3SMR')
+  }
+  
   # Data frame without geometry
   noGeoData <<- as.data.frame(dataset[variablesNames])
   noGeoData <<- noGeoData[,-ncol(noGeoData)]
@@ -678,14 +683,14 @@ selectLinearModel <- function(dataset, variablesNames, formula){
   # Elastic Net
   elasticcv <- train(as.formula(formulaElastic), data = noGeoData, method = "lm", trControl = train.control)
   
-  RMSE <- c(stepcv$results$RMSE, lassocv$results$RMSE, elasticcv$results$RMSE)
+  AICs <- c(AIC(stepcv$finalModel), AIC(lassocv$finalModel), AIC(elasticcv$finalModel))
   
-  results <- cbind(RMSE)
-  rownames(results) <- c('stepAIC', 'lasso', 'elasticNet')
+  results <- cbind(AICs)
+  rownames(results) <- c('classic', 'lasso', 'elasticNet')
   
   bestCriteria <- rownames(results)[which.min(results)]
   
-  if (bestCriteria == 'stepAIC'){
+  if (bestCriteria == 'classic'){
     bestModel <- formulaStep
   } else if (bestCriteria == 'lasso'){
     bestModel <- formulaLasso
@@ -698,45 +703,34 @@ selectLinearModel <- function(dataset, variablesNames, formula){
 }
 ```
 
-We define the covariates and the linear formula.
+We define the covariates and the linear formulas.
 
 
 ```r
 # Variables Names
 variablesNames <- c('SMR','IDD','TEM','CPM','DEP','NUT','CVV','CVD','ESC','IPSE','VAC','NBI','ACU')
 # Set linear model
-formula <- paste0(variablesNames[1], ' ~ ', paste(variablesNames[2:length(variablesNames)], collapse = ' + '))
+baseFormula <- paste0(variablesNames[1], ' ~ ', paste(variablesNames[2:length(variablesNames)], collapse = ' + '))
+# Add higher order spatial lags (2004, 2011)
+formulas <- c(paste0(baseFormula, ' + lag3SMR'), baseFormula, paste0(baseFormula, ' + lag3SMR'), baseFormula )
 ```
 
-And now we use the function we just created ```selectLinearModel```. For 2004, the Lasso and Elastic Net approach could not reach convergence, so we selected the OLS model as the best model. For 2007, 2011 and 2014 the best models were selected by the Lasso approach.
+And now we use the function we just created ```selectLinearModel```.
 
 
 ```r
-#ols Model (2004)
-model04 <- step(lm(as.formula(formula), data = pneuShp$pneu04), trace = 0)
-# Get selected variables
-formula2004 <- paste0(variablesNames[1], ' ~ ', paste(names(model04$model)[-1], collapse = ' + '))
-cat('***2004***\n')
+# ols Models
+olsModels <- lapply(1:length(pneuNames), function (x){ cat(paste0('***20', years[[x]], '***\n')); selectLinearModel(dataset = pneuShp[[x]], variablesNames = variablesNames , formula = formulas[[x]])})
 ```
 
 ```
 ## ***2004***
 ```
 
-```r
-message(paste0('The best criteria for selecting covariates is: stepAIC 
-Formula selected model:\n', formula2004,'\n'))
 ```
-
-```
-## The best criteria for selecting covariates is: stepAIC 
+## The best criteria for selecting covariates is: classic 
 ## Formula selected model:
-## SMR ~ TEM + NUT + CVD + ESC + VAC
-```
-
-```r
-# ols Models for 2007, 2011, 2014 (method failed with 2004)
-olsModels <- lapply(2:length(pneuNames), function (x){ cat(paste0('***20', years[[x]], '***\n')); selectLinearModel(dataset = pneuShp[[x]], variablesNames = variablesNames , formula = formula)})
+##  SMR ~ IDD + DEP + CVV + ESC + NBI + lag3SMR
 ```
 
 ```
@@ -754,9 +748,9 @@ olsModels <- lapply(2:length(pneuNames), function (x){ cat(paste0('***20', years
 ```
 
 ```
-## The best criteria for selecting covariates is: stepAIC 
+## The best criteria for selecting covariates is: lasso 
 ## Formula selected model:
-##  SMR ~ CPM + CVV + IPSE + VAC + ACU
+##  SMR ~ CVD + IPSE + lag3SMR
 ```
 
 ```
@@ -764,16 +758,15 @@ olsModels <- lapply(2:length(pneuNames), function (x){ cat(paste0('***20', years
 ```
 
 ```
-## The best criteria for selecting covariates is: lasso 
+## The best criteria for selecting covariates is: classic 
 ## Formula selected model:
-##  SMR ~ IDD + TEM + CPM + NUT + CVV + IPSE + VAC
+##  SMR ~ TEM + CPM + NUT + CVV + IPSE + VAC + NBI
 ```
 The outcome linear models contain potential covariates that could explain the SMR. We save the models for further analysis.
 
 
 ```r
 # Final OLS models
-olsModels <- c(formula2004, olsModels)
 names(olsModels) <- pneuNames
 olslm <- lapply(1:length(pneuNames), function (x){lm(as.formula(olsModels[[x]]), data = pneuShp[[x]])})
 names(olslm) <- pneuNames
@@ -802,11 +795,11 @@ lapply(1:length(pneuNames), function (x){
 ## model: lm(formula = as.formula(olsModels[[x]]), data = pneuShp[[x]])
 ## weights: nb2listw(get(spatialW[[x]])[[x]])
 ## 
-## Moran I statistic standard deviate = 1.2402, p-value = 0.1074
+## Moran I statistic standard deviate = 0.46192, p-value = 0.3221
 ## alternative hypothesis: greater
 ## sample estimates:
 ## Observed Moran I      Expectation         Variance 
-##       0.02231240      -0.12940269       0.01496444 
+##      -0.09787932      -0.14978746       0.01262791 
 ## 
 ## 
 ## [[2]]
@@ -832,11 +825,11 @@ lapply(1:length(pneuNames), function (x){
 ## model: lm(formula = as.formula(olsModels[[x]]), data = pneuShp[[x]])
 ## weights: nb2listw(get(spatialW[[x]])[[x]])
 ## 
-## Moran I statistic standard deviate = 2.6324, p-value = 0.00424
+## Moran I statistic standard deviate = 2.6597, p-value = 0.003911
 ## alternative hypothesis: greater
 ## sample estimates:
 ## Observed Moran I      Expectation         Variance 
-##       0.19844785      -0.09649925       0.01255430 
+##       0.17313925      -0.11423357       0.01167433 
 ## 
 ## 
 ## [[4]]
@@ -847,11 +840,11 @@ lapply(1:length(pneuNames), function (x){
 ## model: lm(formula = as.formula(olsModels[[x]]), data = pneuShp[[x]])
 ## weights: nb2listw(get(spatialW[[x]])[[x]])
 ## 
-## Moran I statistic standard deviate = -0.42552, p-value = 0.6648
+## Moran I statistic standard deviate = -0.31896, p-value = 0.6251
 ## alternative hypothesis: greater
 ## sample estimates:
 ## Observed Moran I      Expectation         Variance 
-##      -0.21759796      -0.17145190       0.01176081
+##      -0.18931398      -0.15169551       0.01390996
 ```
 The Moran's I test in the linear regression residuals concluded that only 2011 present residual spatial autocorrelation. Although 2004, 2007 and 2014 show no evidence of residual spatial autocorrelaton, we detected spatial dependence in the outcome variable. The results from the Moran's I in both the dependent variable and the OLS residuals suggest initial spatial autorregresive model configurations that considers the nature of this dependence. For instance, in 2011 we might need a model that accounts for spatial structure in the error term.
 
@@ -969,14 +962,6 @@ Now that we count with the lagged variables (see [Higher order matrices](#Higher
 
 First, we add the lagged variables. Then we add the spatially autocorrelated covariates, if not present already in the linear models.
 
-
-```r
-# Redefine formulas to include spatial lags (2004 and 2011)
-olsModels$pneu04 <- paste0(olsModels$pneu04, ' + lag3SMR')
-olsModels$pneu11 <- paste0(olsModels$pneu11, ' + lag3SMR')
-```
-
-
 As we identified spatial autocorrelation, a model that accounts for spatial dependence has to be used. Spatial econometrics literature have developed models to incorporate the spatial dependence in different forms: (i) a spatially lagged dependent variable, (ii) spatially lagged independent variables, and (iii) a spatial structure in the error term. The simultaneous interaction of the three forms produce a spatial autorregresive model known as the General Nesting Spatial (GNS) Model. The GNS is expressed as,
 
 $$\mathbf{y}=\rho \mathbf{W}_{\mathbf{y}}+\mathbf{X} \boldsymbol{\beta}+\mathbf{W} \mathbf{X} \theta+\varepsilon \\
@@ -994,12 +979,66 @@ Other spatial autoregressive models can be obtained by restricting the GNS model
 
 We employ the Lagrange Multiplier test to identify the appropriate spatial autoregressive models and their form or forms of spatial dependence.
 
-The Lagrange Multiplier tests suggest a spatial error model for 2004, and a spatial lag model for the remaining years.
+The Lagrange Multiplier tests suggest a spatial error model for 2014, and a spatial lag model for the remaining years. For 2007 and 2014, the diagnostic test is not significant which suggests a non-spatial model such as an OLS regression or a model that considers spatially lagged independent variables.
 
 
 ```r
 ## Langrange Multipliers
-lagrange <- lapply(1:length(pneuNames), function(x) {lagMul <- summary(lm.LMtests(lm(as.formula(olsModels[[x]]), data = pneuShp[[x]]), nb2listw(get(spatialW[[x]])[[x]]), test = 'all')); bestML <- names(lagMul[which.min(lagMul$results$p.value)]) ; return(bestML)}) 
+lagrange <- lapply(1:length(pneuNames), function(x) {lagMul <- summary(lm.LMtests(lm(as.formula(olsModels[[x]]), data = pneuShp[[x]]), nb2listw(get(spatialW[[x]])[[x]]), test = 'all')); print(lagMul);bestML <- names(lagMul[which.min(lagMul$results$p.value)]) ; return(bestML)}) 
+```
+
+```
+## 	Lagrange multiplier diagnostics for spatial dependence
+## data:  
+## model: lm(formula = as.formula(olsModels[[x]]), data = pneuShp[[x]])
+## weights: nb2listw(get(spatialW[[x]])[[x]])
+##  
+##        statistic parameter  p.value   
+## LMerr    0.36525         1 0.545605   
+## LMlag    3.26272         1 0.070871 . 
+## RLMerr   4.43972         1 0.035112 * 
+## RLMlag   7.33719         1 0.006754 **
+## SARMA    7.70244         2 0.021254 * 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 	Lagrange multiplier diagnostics for spatial dependence
+## data:  
+## model: lm(formula = as.formula(olsModels[[x]]), data = pneuShp[[x]])
+## weights: nb2listw(get(spatialW[[x]])[[x]])
+##  
+##         statistic parameter p.value
+## LMerr  0.07970313         1  0.7777
+## LMlag  0.11264673         1  0.7372
+## RLMerr 0.00077507         1  0.9778
+## RLMlag 0.03371867         1  0.8543
+## SARMA  0.11342180         2  0.9449
+## 	Lagrange multiplier diagnostics for spatial dependence
+## data:  
+## model: lm(formula = as.formula(olsModels[[x]]), data = pneuShp[[x]])
+## weights: nb2listw(get(spatialW[[x]])[[x]])
+##  
+##        statistic parameter p.value  
+## LMerr    1.41925         1 0.23353  
+## LMlag    2.82018         1 0.09309 .
+## RLMerr   0.31204         1 0.57643  
+## RLMlag   1.71298         1 0.19060  
+## SARMA    3.13223         2 0.20886  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 	Lagrange multiplier diagnostics for spatial dependence
+## data:  
+## model: lm(formula = as.formula(olsModels[[x]]), data = pneuShp[[x]])
+## weights: nb2listw(get(spatialW[[x]])[[x]])
+##  
+##        statistic parameter p.value
+## LMerr  1.3663864         1  0.2424
+## LMlag  0.3201257         1  0.5715
+## RLMerr 1.0526273         1  0.3049
+## RLMlag 0.0063666         1  0.9364
+## SARMA  1.3727530         2  0.5034
+```
+
+```r
 lagrange # Lagrange Multipliers suggests a Lag model for every year
 ```
 
@@ -1014,7 +1053,7 @@ lagrange # Lagrange Multipliers suggests a Lag model for every year
 ## [1] "LMlag"
 ## 
 ## [[4]]
-## [1] "LMlag"
+## [1] "LMerr"
 ```
 
 However, Lagrange Multiplier test ignores models with exogenous spatial interaction (spatially lagged independent variables). We support its results with the Akaike information criterion (AIC) for the seven possible spatial models fitted using the Maximum likelihood estimation.
@@ -1025,18 +1064,30 @@ First, we define a function to build all the SAR models. For further details abo
 ```r
 ## Spatial autorregresive models
 sarModels <- function(lm, data, listw){
-  lagSar <- lagsarlm(lm, data ,listw)               # Spatial lag model (WY)
-  errSar <- errorsarlm(lm, data, listw)             # Error model (We)
-  durSar <- lagsarlm(lm, data ,listw, Durbin = T)   # Durbin model (WY. WX)
-  sacSar <- sacsarlm(lm, data ,listw)               # SARAR model (WY, We)
-  slxSar <- lmSLX(lm, data, listw)                  # SLX model (WX)
-  gnSar <-  sacsarlm(lm, data ,listw, Durbin = T)   # General Nesting (WY,WX,We)
-  ols <- lm(lm, data)                               # OLS regression
   
-  sarModels <- list(lagSar, errSar, durSar, sacSar, slxSar, gnSar, ols) # All models
+  # remove spatial lag for models with Wx
+  cov <- unlist(strsplit(lm, split = " ~ "))[2]
+  if (substr(cov, nchar(cov)-6, nchar(cov)) == 'lag3SMR'){
+    wx <- paste0(' ~ ', substr(cov,1, nchar(cov)-10))
+  }else{
+    wx <- paste0(' ~ ', cov)
+  }
+  
+  lm <- as.formula(lm)
+  
+  lagSar <- lagsarlm(lm, data ,listw)                                   # Spatial lag model (WY)
+  errSar <- errorsarlm(lm, data, listw)                                 # Error model (We)
+  durSar <- lagsarlm(lm, data ,listw, Durbin = as.formula(wx))          # Durbin model (WY. WX)
+  sacSar <- sacsarlm(lm, data ,listw, type="sac")                       # SARAR model (WY, We)
+  slxSar <- lmSLX(lm, data, listw, Durbin = as.formula(wx))             # SLX model (WX)
+  durErrSar <- errorsarlm(lm, data, listw, Durbin = as.formula(wx))     # SDEM model (WX, We)
+  gnSar <-  sacsarlm(lm, data ,listw, Durbin = as.formula(wx))          # General Nesting (WY,WX,We)
+  ols <- lm(lm, data)                                                   # OLS regression
+  
+  sarModels <- list(lagSar, errSar, slxSar, durSar, sacSar, durErrSar, gnSar, ols) # All models
   
   statLag <- lapply(sarModels, function(x){val <- cbind(aic = AIC(x), loglik = logLik(x)[[1]]); return(val)})
-  statLag <- as.data.frame(do.call(rbind, statLag), row.names = c('lag','error','durbin','sac','slx','gns','ols'))
+  statLag <- as.data.frame(do.call(rbind, statLag), row.names = c('lag','error','slx', 'durbin','sac','erdur','gns','ols'))
   return(statLag)
 }
 ```
@@ -1047,74 +1098,79 @@ And then we test our models.
 
 ```r
 # Test models
-sarResults <- lapply(1:length(pneuNames), function (x) {sarModels(as.formula(olsModels[[x]]), pneuShp[[x]], nb2listw(get(spatialW[[x]])[[x]]))})
+# Test models
+sarResults <- lapply(1:length(pneuNames), function (x) {sarModels(olsModels[[x]], pneuShp[[x]], nb2listw(get(spatialW[[x]])[[x]]))})
 names(sarResults) <- pneuNames
 sarResults
 ```
 
 ```
 ## $pneu04
-##               aic   loglik
-## lag     -2.914170 10.45709
-## error   -2.896077 10.44804
-## durbin -16.352729 23.17636
-## sac     -7.097018 13.54851
-## slx    -12.710649 20.35532
-## gns    -30.911939 31.45597
-## ols     -4.268996 10.13450
+##              aic   loglik
+## lag    -14.84090 16.42045
+## error  -13.86133 15.93066
+## slx    -15.61972 20.80986
+## durbin -17.90445 22.95223
+## sac    -23.16795 21.58398
+## erdur  -27.45947 27.72974
+## gns    -28.34226 29.17113
+## ols    -12.38918 14.19459
 ## 
 ## $pneu07
 ##              aic    loglik
 ## lag    -6.527506  9.263753
 ## error  -6.512847  9.256423
+## slx    -2.901140  9.450570
 ## durbin -1.155354  9.577677
 ## sac    -4.897860  9.448930
-## slx    -2.901140  9.450570
+## erdur  -1.330259  9.665129
 ## gns    -1.620479 10.810240
 ## ols    -8.436453  9.218227
 ## 
 ## $pneu11
-##              aic     loglik
-## lag    12.986909  2.5065457
-## error  13.444602  2.2776992
-## durbin  7.698594 11.1507029
-## sac    13.808901  3.0955494
-## slx     7.996370 10.0018150
-## gns     4.195890 13.9020549
-## ols    16.520817 -0.2604087
+##             aic     loglik
+## lag    12.31000 -0.1550015
+## error  12.84901 -0.4245041
+## slx    15.86777 -0.9338853
+## durbin 14.63786  0.6810687
+## sac    13.08953  0.4552356
+## erdur  13.22514  1.3874317
+## gns    15.11065  1.4446758
+## ols    14.56476 -2.2823777
 ## 
 ## $pneu14
-##              aic    loglik
-## lag     4.101220  7.949390
-## error   2.416914  8.791543
-## durbin 11.487987 11.256006
-## sac     3.518699  9.240650
-## slx    13.836719  9.081641
-## gns    -4.427679 20.213839
-## ols     5.888563  6.055719
+##               aic    loglik
+## lag      5.440303  7.279848
+## error    1.988658  9.005671
+## slx     -6.016279 19.008140
+## durbin  -4.912700 19.456350
+## sac      3.832918  9.083541
+## erdur  -37.786484 35.893242
+## gns    -35.787106 35.893553
+## ols      3.836991  7.081505
 ```
 
-Let us select the models with the lowest AIC and highest Log-likelihood. These will be our final SAR models. We will ommit from the selection the OLS model, as there is no spatial interactions in it, and the GNS which has been found to be highly overfitted.
+Let us select the models with the lowest AIC and highest Log-likelihood. These will be our final SAR models. We will ommit from the selection the GNS model which has been found to be highly overfitted.
 
 
 ```r
 # Get best models (based on AIC and Log Likekihood)
-bestSar <- lapply(1:length(pneuNames), function(x) {rownames(sarResults[[x]])[which.min(sarResults[[x]]$aic[1:5])]}) # No GNS or OLS
+bestSar <- lapply(1:length(pneuNames), function(x) {rownames(sarResults[[x]])[c(1:6,8)][which.min(sarResults[[x]]$aic[c(1:6,8)])]}) # No GNS or sDEM (Overfitting)
 bestSar
 ```
 
 ```
 ## [[1]]
-## [1] "durbin"
+## [1] "erdur"
 ## 
 ## [[2]]
-## [1] "lag"
+## [1] "ols"
 ## 
 ## [[3]]
-## [1] "durbin"
+## [1] "lag"
 ## 
 ## [[4]]
-## [1] "error"
+## [1] "erdur"
 ```
 
 And now we compute our definitive model for each year.
@@ -1122,11 +1178,11 @@ And now we compute our definitive model for each year.
 
 ```r
 # Selected Models
-dur04 <- lagsarlm(as.formula(olsModels$pneu04), pneuShp$pneu04, nb2listw(queenW$pneu04), Durbin = ~ CVD + NUT + VAC + TEM + ESC) 
-lag07 <- lagsarlm(as.formula(olsModels$pneu07), pneuShp$pneu07 ,nb2listw(kn2W$pneu07))
-dur11 <- lagsarlm(as.formula(olsModels$pneu11), pneuShp$pneu11, nb2listw(kn4W$pneu11), Durbin = ~  CPM + CVV + IPSE + VAC) 
-err14 <- errorsarlm(as.formula(olsModels$pneu14), pneuShp$pneu14, nb2listw(queenW$pneu14))
-sarReg <- list(dur04, lag07, dur11, err14)
+erd04 <- errorsarlm(as.formula(olsModels$pneu04), pneuShp$pneu04, nb2listw(queenW$pneu04), Durbin = ~ IDD + DEP + CVV + NBI) 
+ols07 <- lm(as.formula(olsModels$pneu07), pneuShp$pneu07)
+lag11 <- lagsarlm(as.formula(olsModels$pneu11), pneuShp$pneu11, nb2listw(kn4W$pneu11)) 
+erd14 <- errorsarlm(as.formula(olsModels$pneu14), pneuShp$pneu14, nb2listw(queenW$pneu14), Durbin = ~ TEM + CPM + NUT + CVV + IPSE + VAC + NBI)
+sarReg <- list(erd04, ols07, lag11, erd14)
 
 # Summary
 lapply(sarReg, function(x) {summary(x, Nagelkerke=T)})
@@ -1135,148 +1191,136 @@ lapply(sarReg, function(x) {summary(x, Nagelkerke=T)})
 ```
 ## [[1]]
 ## 
-## Call:lagsarlm(formula = as.formula(olsModels$pneu04), data = pneuShp$pneu04, 
-##     listw = nb2listw(queenW$pneu04), Durbin = ~CVD + NUT + VAC + 
-##         TEM + ESC)
+## Call:errorsarlm(formula = as.formula(olsModels$pneu04), data = pneuShp$pneu04, 
+##     listw = nb2listw(queenW$pneu04), Durbin = ~IDD + DEP + CVV +         NBI)
 ## 
 ## Residuals:
-##       Min        1Q    Median        3Q       Max 
-## -0.177894 -0.049231  0.010979  0.048104  0.101514 
+##        Min         1Q     Median         3Q        Max 
+## -0.0686078 -0.0356680  0.0057472  0.0374899  0.0600489 
 ## 
-## Type: mixed 
+## Type: error 
 ## Coefficients: (asymptotic standard errors) 
-##                Estimate  Std. Error z value  Pr(>|z|)
-## (Intercept) -20.6375101   3.8824309 -5.3156 1.063e-07
-## TEM           0.0704103   0.0195309  3.6051 0.0003121
-## NUT           0.0445005   0.0113838  3.9091 9.264e-05
-## CVD           0.0538048   0.0131305  4.0977 4.173e-05
-## ESC          -0.0525523   0.0093131 -5.6428 1.673e-08
-## VAC           0.0077153   0.0013242  5.8263 5.667e-09
-## lag3SMR      -1.0143229   0.1826959 -5.5520 2.825e-08
-## lag.CVD       0.1191404   0.0439447  2.7111 0.0067052
-## lag.NUT       0.0998653   0.0356886  2.7982 0.0051382
-## lag.VAC       0.0248744   0.0042936  5.7934 6.899e-09
-## lag.TEM       0.2911598   0.0434159  6.7063 1.996e-11
-## lag.ESC       0.0169494   0.0354422  0.4782 0.6324891
+##               Estimate Std. Error  z value  Pr(>|z|)
+## (Intercept) -8.9358871  4.7300361  -1.8892   0.05887
+## IDD         -0.0107641  0.0134992  -0.7974   0.42523
+## DEP         -0.0344321  0.0050137  -6.8675 6.531e-12
+## CVV          0.5122590  0.0917104   5.5856 2.329e-08
+## ESC         -0.0564406  0.0076766  -7.3523 1.947e-13
+## NBI          0.0481006  0.0093993   5.1175 3.096e-07
+## lag3SMR     -2.1425394  0.1477536 -14.5008 < 2.2e-16
+## lag.IDD     -0.1008080  0.0223361  -4.5132 6.385e-06
+## lag.DEP     -0.0776842  0.0172807  -4.4954 6.943e-06
+## lag.CVV      0.9667656  0.4385333   2.2045   0.02749
+## lag.NBI      0.0595826  0.0245046   2.4315   0.01504
 ## 
-## Rho: -0.72793, LR test value: 6.3377, p-value: 0.01182
-## Asymptotic standard error: 0.21967
-##     z-value: -3.3138, p-value: 0.0009204
-## Wald statistic: 10.981, p-value: 0.0009204
+## Lambda: -1.5814, LR test value: 14.677, p-value: 0.00012758
+## Asymptotic standard error: 0.088628
+##     z-value: -17.843, p-value: < 2.22e-16
+## Wald statistic: 318.37, p-value: < 2.22e-16
 ## 
-## Log likelihood: 23.17634 for mixed model
-## ML residual variance (sigma squared): 0.0045685, (sigma: 0.067591)
-## Nagelkerke pseudo-R-squared: 0.93488 
+## Log likelihood: 27.63161 for error model
+## ML residual variance (sigma squared): 0.0015882, (sigma: 0.039853)
+## Nagelkerke pseudo-R-squared: 0.95926 
 ## Number of observations: 19 
-## Number of parameters estimated: 14 
-## AIC: -18.353, (AIC for lm: -14.015)
-## LM test for residual autocorrelation
-## test value: 3.5095, p-value: 0.061019
+## Number of parameters estimated: 13 
+## AIC: -29.263, (AIC for lm: -16.586)
 ## 
 ## 
 ## [[2]]
 ## 
-## Call:lagsarlm(formula = as.formula(olsModels$pneu07), data = pneuShp$pneu07, 
-##     listw = nb2listw(kn2W$pneu07))
+## Call:
+## lm(formula = as.formula(olsModels$pneu07), data = pneuShp$pneu07)
 ## 
 ## Residuals:
-##       Min        1Q    Median        3Q       Max 
-## -0.320406 -0.092983  0.016820  0.129424  0.180856 
+##      Min       1Q   Median       3Q      Max 
+## -0.32819 -0.09499  0.03577  0.12618  0.17137 
 ## 
-## Type: lag 
-## Coefficients: (asymptotic standard errors) 
-##              Estimate Std. Error z value  Pr(>|z|)
-## (Intercept) 10.021197   2.567442  3.9032 9.494e-05
-## log(DEP)     0.420959   0.211853  1.9870   0.04692
-## log(ESC)    -2.991608   0.709487 -4.2166 2.480e-05
-## log(IPSE)   -0.028294   0.033675 -0.8402   0.40079
+## Coefficients:
+##             Estimate Std. Error t value Pr(>|t|)   
+## (Intercept)  9.60751    2.79234   3.441  0.00364 **
+## log(DEP)     0.42674    0.23909   1.785  0.09452 . 
+## log(ESC)    -2.89774    0.78652  -3.684  0.00221 **
+## log(IPSE)   -0.03032    0.03578  -0.847  0.41014   
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Rho: -0.062638, LR test value: 0.091053, p-value: 0.76284
-## Asymptotic standard error: 0.23116
-##     z-value: -0.27098, p-value: 0.78641
-## Wald statistic: 0.073428, p-value: 0.78641
-## 
-## Log likelihood: 9.263753 for lag model
-## ML residual variance (sigma squared): 0.022059, (sigma: 0.14852)
-## Nagelkerke pseudo-R-squared: 0.53041 
-## Number of observations: 19 
-## Number of parameters estimated: 6 
-## AIC: -6.5275, (AIC for lm: -8.4365)
-## LM test for residual autocorrelation
-## test value: 0.0099139, p-value: 0.92069
+## Residual standard error: 0.1676 on 15 degrees of freedom
+## Multiple R-squared:  0.5282,	Adjusted R-squared:  0.4338 
+## F-statistic: 5.597 on 3 and 15 DF,  p-value: 0.008851
 ## 
 ## 
 ## [[3]]
 ## 
 ## Call:lagsarlm(formula = as.formula(olsModels$pneu11), data = pneuShp$pneu11, 
-##     listw = nb2listw(kn4W$pneu11), Durbin = ~CPM + CVV + IPSE +         VAC)
+##     listw = nb2listw(kn4W$pneu11))
 ## 
 ## Residuals:
-##       Min        1Q    Median        3Q       Max 
-## -0.301052 -0.054457  0.006944  0.069554  0.262058 
+##      Min       1Q   Median       3Q      Max 
+## -0.33923 -0.17993 -0.07028  0.19281  0.59211 
 ## 
-## Type: mixed 
+## Type: lag 
 ## Coefficients: (asymptotic standard errors) 
-##                Estimate  Std. Error z value  Pr(>|z|)
-## (Intercept) -4.0567e+01  1.3106e+01 -3.0953 0.0019661
-## CPM         -1.9567e-02  4.9148e-03 -3.9813 6.853e-05
-## CVV         -6.9515e-01  1.5512e-01 -4.4815 7.413e-06
-## IPSE         1.3613e-03  9.0062e-04  1.5115 0.1306666
-## VAC          4.9714e-02  1.3180e-02  3.7719 0.0001620
-## ACU          5.3614e-01  1.4688e-01  3.6503 0.0002619
-## lag3SMR      1.1838e+00  3.3809e-01  3.5014 0.0004627
-## lag.CPM     -2.5836e-02  9.1506e-03 -2.8234 0.0047511
-## lag.CVV     -1.0087e+00  2.4765e-01 -4.0730 4.642e-05
-## lag.IPSE    -9.2824e-03  2.5826e-03 -3.5942 0.0003254
-## lag.VAC      5.8532e-02  3.1943e-02  1.8324 0.0668992
+##               Estimate Std. Error z value Pr(>|z|)
+## (Intercept) -1.2151258  1.9577757 -0.6207  0.53482
+## CVD          0.0154817  0.0205902  0.7519  0.45211
+## IPSE         0.0032564  0.0011289  2.8845  0.00392
+## lag3SMR      0.0280654  0.2972434  0.0944  0.92478
 ## 
-## Rho: 0.70102, LR test value: 6.0355, p-value: 0.014021
-## Asymptotic standard error: 0.15546
-##     z-value: 4.5093, p-value: 6.5027e-06
-## Wald statistic: 20.334, p-value: 6.5027e-06
+## Rho: 0.65838, LR test value: 4.2548, p-value: 0.039141
+## Asymptotic standard error: 0.17523
+##     z-value: 3.7572, p-value: 0.00017181
+## Wald statistic: 14.117, p-value: 0.00017181
 ## 
-## Log likelihood: 10.491 for mixed model
-## ML residual variance (sigma squared): 0.017425, (sigma: 0.13201)
-## Nagelkerke pseudo-R-squared: 0.87678 
+## Log likelihood: -0.1550015 for lag model
+## ML residual variance (sigma squared): 0.054327, (sigma: 0.23308)
+## Nagelkerke pseudo-R-squared: 0.62211 
 ## Number of observations: 19 
-## Number of parameters estimated: 13 
-## AIC: 5.018, (AIC for lm: 9.0535)
+## Number of parameters estimated: 6 
+## AIC: 12.31, (AIC for lm: 14.565)
 ## LM test for residual autocorrelation
-## test value: 0.70649, p-value: 0.40061
+## test value: 1.144, p-value: 0.28481
 ## 
 ## 
 ## [[4]]
 ## 
 ## Call:errorsarlm(formula = as.formula(olsModels$pneu14), data = pneuShp$pneu14, 
-##     listw = nb2listw(queenW$pneu14))
+##     listw = nb2listw(queenW$pneu14), Durbin = ~TEM + CPM + NUT + 
+##         CVV + IPSE + VAC + NBI)
 ## 
 ## Residuals:
 ##        Min         1Q     Median         3Q        Max 
-## -0.2217362 -0.1008818 -0.0071495  0.0946907  0.2418540 
+## -0.0504833 -0.0137329  0.0060434  0.0126865  0.0358486 
 ## 
 ## Type: error 
 ## Coefficients: (asymptotic standard errors) 
 ##                Estimate  Std. Error  z value  Pr(>|z|)
-## (Intercept)  1.5428e+01  1.1188e+00  13.7897 < 2.2e-16
-## IDD          4.9093e-03  2.6274e-02   0.1868  0.851781
-## TEM          1.4335e-01  4.5656e-02   3.1398  0.001691
-## CPM         -9.9509e-03  1.7192e-03  -5.7881 7.117e-09
-## NUT         -1.0078e-01  2.5222e-02  -3.9955 6.455e-05
-## CVV         -1.0633e+00  9.5253e-02 -11.1629 < 2.2e-16
-## IPSE         4.1316e-04  6.0324e-05   6.8491 7.433e-12
-## VAC         -2.5497e-02  3.9153e-03  -6.5121 7.410e-11
+## (Intercept)  5.0728e+01  8.2732e+00   6.1315 8.704e-10
+## TEM         -3.4842e-01  4.5603e-02  -7.6402 2.176e-14
+## CPM         -2.0839e-03  1.9881e-03  -1.0482   0.29454
+## NUT         -1.8530e-01  1.6720e-02 -11.0822 < 2.2e-16
+## CVV         -5.4841e-02  1.5422e-01  -0.3556   0.72214
+## IPSE         4.4239e-04  2.5576e-05  17.2969 < 2.2e-16
+## VAC          3.9486e-02  6.0718e-03   6.5033 7.859e-11
+## NBI         -1.3864e-02  7.2378e-03  -1.9154   0.05544
+## lag.TEM     -1.5930e+00  1.8241e-01  -8.7335 < 2.2e-16
+## lag.CPM      7.0117e-02  7.6712e-03   9.1403 < 2.2e-16
+## lag.NUT     -1.4939e-02  5.2110e-02  -0.2867   0.77435
+## lag.CVV     -2.6849e+00  5.8911e-01  -4.5577 5.173e-06
+## lag.IPSE    -1.9198e-04  8.7551e-05  -2.1928   0.02832
+## lag.VAC      1.0260e-01  1.6131e-02   6.3606 2.010e-10
+## lag.NBI     -3.5215e-01  2.5148e-02 -14.0031 < 2.2e-16
 ## 
-## Lambda: -1.0938, LR test value: 5.4716, p-value: 0.019327
-## Asymptotic standard error: 0.25247
-##     z-value: -4.3326, p-value: 1.4739e-05
-## Wald statistic: 18.771, p-value: 1.4739e-05
+## Lambda: -1.7137, LR test value: 33.77, p-value: 6.2022e-09
+## Asymptotic standard error: 0.015631
+##     z-value: -109.64, p-value: < 2.22e-16
+## Wald statistic: 12020, p-value: < 2.22e-16
 ## 
-## Log likelihood: 8.791543 for error model
-## ML residual variance (sigma squared): 0.017827, (sigma: 0.13352)
-## Nagelkerke pseudo-R-squared: 0.94196 
+## Log likelihood: 35.89324 for error model
+## ML residual variance (sigma squared): 0.00047388, (sigma: 0.021769)
+## Nagelkerke pseudo-R-squared: 0.99665 
 ## Number of observations: 19 
-## Number of parameters estimated: 10 
-## AIC: 2.4169, (AIC for lm: 5.8886)
+## Number of parameters estimated: 17 
+## AIC: -37.786, (AIC for lm: -6.0163)
 ```
 
 ### SAR assumptions
@@ -1309,7 +1353,7 @@ invisible(lapply(1:length(pneuNames), function (x){
   normality <- shapiro.test(residuals(saryear))
   if (normality$p.value >= 0.05) {cat('Normal\n')} else {cat('non-normal\n')}
   # Heteroscedasticity: Breusch Pagan test
-  if (class(saryear)[1] == 'SlX') {homos <- bptest(saryear)} else { homos <- bptest.Sarlm(saryear)}
+  if (class(saryear)[1] %in% c('SlX','lm')) {homos <- bptest(saryear)} else { homos <- bptest.Sarlm(saryear)}
   if (homos$p.value >= 0.05) {cat('Homocedastic\n')} else {cat('Heteroscedastic\n')}
   # autocorrelation
   moran <- moran.test(residuals(saryear), nb2listw(get(spatialW[[x]])[[x]]))
@@ -1346,7 +1390,7 @@ invisible(lapply(1:length(pneuNames), function (x){
 ## ***** 2014 *****
 ```
 
-![](SAR-Pneumonia_files/figure-html/unnamed-chunk-38-1.png)<!-- -->
+![](SAR-Pneumonia_files/figure-html/unnamed-chunk-37-1.png)<!-- -->
 
 ```
 ## Normal
@@ -1365,116 +1409,117 @@ We assess the contribution of our variables trought impacts. We compute the impa
 
 ```r
 # Impacts
-impactModels <- lapply(1:3, function (x) {summary(impacts(sarReg[[x]], listw = nb2listw(get(spatialW[[x]])[[x]]), R = 1000), zstats = T, short=TRUE)}) # 2014: error models doesn't have impacts
-names(impactModels) <- pneuNames[1:3]
+impactModels <- lapply(c(1,3:4), function (x) {summary(impacts(sarReg[[x]], listw = nb2listw(get(spatialW[[x]])[[x]]), R = 1000), zstats = T, short=TRUE, density = T)}) # 2007: ols model doesn't have impacts
+names(impactModels) <- pneuNames[c(1,3:4)]
 impactModels
 ```
 
 ```
 ## $pneu04
-## Impact measures (mixed, exact):
-##               Direct   Indirect       Total
-## TEM      0.033057637 0.17619252  0.20925016
-## NUT      0.033995320 0.04955298  0.08354830
-## CVD      0.041353052 0.05873489  0.10008794
-## ESC     -0.061147358 0.04054303 -0.02060433
-## VAC      0.004716873 0.01414365  0.01886052
-## lag3SMR -1.129283310 0.54226790 -0.58701541
-## ========================================================
-## Simulation results ( variance matrix):
-## ========================================================
-## Simulated standard errors
+## Impact measures (SDEM, estimable, n):
 ##              Direct    Indirect       Total
-## TEM     0.022248261 0.027534259 0.029606795
-## NUT     0.016067636 0.023060364 0.014468576
-## CVD     0.020195578 0.030602317 0.015785720
-## ESC     0.009979834 0.022505547 0.021916316
-## VAC     0.001603976 0.002691512 0.002824084
-## lag3SMR 0.223932181 0.200449213 0.128285762
-## 
-## Simulated z-values:
-##            Direct Indirect      Total
-## TEM      1.358113 6.483604  7.0503036
-## NUT      1.986803 2.235221  5.7689328
-## CVD      1.929253 1.995514  6.3367241
-## ESC     -6.104175 1.787794 -0.9437433
-## VAC      2.847645 5.396623  6.7606446
-## lag3SMR -5.198515 2.840103 -4.6366684
-## 
-## Simulated p-values:
-##         Direct     Indirect   Total     
-## TEM     0.1744279  8.9557e-11 1.7852e-12
-## NUT     0.0469443  0.0254028  7.9775e-09
-## CVD     0.0536994  0.0459868  2.3470e-10
-## ESC     1.0333e-09 0.0738093  0.3453    
-## VAC     0.0044044  6.7907e-08 1.3738e-11
-## lag3SMR 2.0089e-07 0.0045099  3.5407e-06
-## 
-## $pneu07
-## Impact measures (lag, exact):
-##                Direct     Indirect       Total
-## log(DEP)   0.42138834 -0.025242917  0.39614542
-## log(ESC)  -2.99465844  0.179392521 -2.81526592
-## log(IPSE) -0.02832316  0.001696675 -0.02662648
+## IDD     -0.01076405 -0.10080797 -0.11157202
+## DEP     -0.03443214 -0.07768419 -0.11211633
+## CVV      0.51225899  0.96676561  1.47902460
+## ESC     -0.05644063          NA -0.05644063
+## NBI      0.04810060  0.05958261  0.10768321
+## lag3SMR -2.14253938          NA -2.14253938
 ## ========================================================
-## Simulation results ( variance matrix):
+## Standard errors:
+##              Direct   Indirect       Total
+## IDD     0.013499193 0.02233614 0.019550579
+## DEP     0.005013745 0.01728071 0.018726444
+## CVV     0.091710395 0.43853328 0.406967381
+## ESC     0.007676552         NA 0.007676552
+## NBI     0.009399267 0.02450460 0.022499351
+## lag3SMR 0.147753614         NA 0.147753614
 ## ========================================================
-## Simulated standard errors
-##               Direct  Indirect      Total
-## log(DEP)  0.21917004 0.1213802 0.24709263
-## log(ESC)  0.75793881 0.7906949 0.96796486
-## log(IPSE) 0.03528195 0.0124761 0.03906829
+## Z-values:
+##             Direct  Indirect      Total
+## IDD      -0.797385 -4.513222  -5.706840
+## DEP      -6.867549 -4.495428  -5.987059
+## CVV       5.585615  2.204543   3.634258
+## ESC      -7.352342        NA  -7.352342
+## NBI       5.117484  2.431487   4.786059
+## lag3SMR -14.500758        NA -14.500758
 ## 
-## Simulated z-values:
-##               Direct   Indirect      Total
-## log(DEP)   1.9017945 -0.0944859  1.6404684
-## log(ESC)  -4.0034551  0.1524941 -3.0102309
-## log(IPSE) -0.7945346 -0.2055323 -0.7831664
+## p-values:
+##         Direct     Indirect  Total     
+## IDD     0.42523    6.385e-06 1.1509e-08
+## DEP     6.5314e-12 6.943e-06 2.1367e-09
+## CVV     2.3287e-08 0.027486  0.00027878
+## ESC     1.9473e-13 NA        1.9473e-13
+## NBI     3.0964e-07 0.015037  1.7009e-06
+## lag3SMR < 2.22e-16 NA        < 2.22e-16
 ## 
-## Simulated p-values:
-##           Direct     Indirect Total    
-## log(DEP)  0.057198   0.92472  0.1009078
-## log(ESC)  6.2424e-05 0.87880  0.0026105
-## log(IPSE) 0.426884   0.83716  0.4335294
 ## 
 ## $pneu11
-## Impact measures (mixed, exact):
-##                Direct    Indirect       Total
-## CPM     -0.0277853070 -0.12407381 -0.15185911
-## CVV     -1.0059640917 -4.69271943 -5.69868352
-## IPSE    -0.0003690531 -0.02612434 -0.02649339
-## VAC      0.0691156352  0.29292868  0.36204431
-## ACU      0.6142287905  1.17897811  1.79320690
-## lag3SMR  1.3562236712  2.60319614  3.95941981
+## Impact measures (lag, exact):
+##              Direct    Indirect       Total
+## CVD     0.017307372 0.028011070 0.045318441
+## IPSE    0.003640405 0.005891804 0.009532209
+## lag3SMR 0.031374973 0.050778741 0.082153714
 ## ========================================================
 ## Simulation results ( variance matrix):
 ## ========================================================
 ## Simulated standard errors
-##             Direct   Indirect      Total
-## CPM     0.05679750  1.0119438  1.0685379
-## CVV     2.33278067 41.6178129 43.9451767
-## IPSE    0.01113114  0.1981132  0.2092065
-## VAC     0.12004322  2.1059007  2.2250464
-## ACU     0.73059172 12.6560927 13.3719096
-## lag3SMR 1.75485684 30.3561065 32.0796863
+##              Direct   Indirect      Total
+## CVD     0.045307773  0.6794041  0.7196046
+## IPSE    0.008839486  0.1578395  0.1666077
+## lag3SMR 1.039968567 17.3713852 18.3716090
 ## 
 ## Simulated z-values:
-##             Direct   Indirect      Total
-## CPM     -0.6085231 -0.2419341 -0.2614660
-## CVV     -0.5483569 -0.2306920 -0.2475834
-## IPSE    -0.1542665 -0.2533476 -0.2481218
-## VAC      0.7054217  0.2689983  0.2926522
-## ACU      0.9465266  0.2080068  0.2485866
-## lag3SMR  0.8952363  0.2049149  0.2428774
+##            Direct    Indirect       Total
+## CVD     0.4128524  0.07399960  0.09585966
+## IPSE    0.4775068  0.10235574  0.12230347
+## lag3SMR 0.0196677 -0.02200871 -0.01969714
 ## 
 ## Simulated p-values:
 ##         Direct  Indirect Total  
-## CPM     0.54284 0.80883  0.79373
-## CVV     0.58345 0.81755  0.80446
-## IPSE    0.87740 0.80000  0.80404
-## VAC     0.48055 0.78793  0.76979
-## ACU     0.34388 0.83522  0.80368
-## lag3SMR 0.37066 0.83764  0.80810
+## CVD     0.67971 0.94101  0.92363
+## IPSE    0.63300 0.91847  0.90266
+## lag3SMR 0.98431 0.98244  0.98428
+## 
+## $pneu14
+## Impact measures (SDEM, estimable, n):
+##             Direct      Indirect         Total
+## TEM  -0.3484174181 -1.5930388477 -1.9414562658
+## CPM  -0.0020839090  0.0701169068  0.0680329978
+## NUT  -0.1852954185 -0.0149392154 -0.2002346340
+## CVV  -0.0548414419 -2.6849452741 -2.7397867160
+## IPSE  0.0004423868 -0.0001919812  0.0002504056
+## VAC   0.0394864178  0.1026018160  0.1420882337
+## NBI  -0.0138635449 -0.3521536818 -0.3660172267
+## ========================================================
+## Standard errors:
+##            Direct     Indirect        Total
+## TEM  4.560294e-02 1.824062e-01 0.2257680857
+## CPM  1.988055e-03 7.671198e-03 0.0065351924
+## NUT  1.672005e-02 5.211049e-02 0.0661177737
+## CVV  1.542230e-01 5.891072e-01 0.4563997359
+## IPSE 2.557609e-05 8.755143e-05 0.0001062476
+## VAC  6.071771e-03 1.613089e-02 0.0135016218
+## NBI  7.237753e-03 2.514831e-02 0.0296327259
+## ========================================================
+## Z-values:
+##           Direct    Indirect      Total
+## TEM   -7.6402395  -8.7334683  -8.599339
+## CPM   -1.0482152   9.1402808  10.410252
+## NUT  -11.0822301  -0.2866835  -3.028454
+## CVV   -0.3555984  -4.5576516  -6.003042
+## IPSE  17.2968885  -2.1927822   2.356812
+## VAC    6.5032786   6.3605791  10.523790
+## NBI   -1.9154488 -14.0030770 -12.351791
+## 
+## p-values:
+##      Direct     Indirect   Total     
+## TEM  2.1760e-14 < 2.22e-16 < 2.22e-16
+## CPM  0.294539   < 2.22e-16 < 2.22e-16
+## NUT  < 2.22e-16 0.774355   0.0024581 
+## CVV  0.722141   5.1729e-06 1.9365e-09
+## IPSE < 2.22e-16 0.028323   0.0184326 
+## VAC  7.8588e-11 2.0099e-10 < 2.22e-16
+## NBI  0.055435   < 2.22e-16 < 2.22e-16
 ```
 
 
