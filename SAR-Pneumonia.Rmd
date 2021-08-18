@@ -633,7 +633,7 @@ names(sarResults) <- pneuNames
 sarResults
 ```
 
-Let us select the models with the lowest AIC and highest Log-likelihood. These will be our final SAR models. We will ommit from the selection the GNS model which has been found to be highly overfitted.
+Let us select the models with the lowest AIC and highest Log-likelihood. These will be our final SAR models. We will ommit from the selection the GNS which haS been found to be highly overfitted.
 
 ```{r}
 # Get best models (based on AIC and Log Likekihood)

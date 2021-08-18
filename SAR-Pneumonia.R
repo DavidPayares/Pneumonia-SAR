@@ -411,7 +411,7 @@ sarResults # GNS are overfitted models (see. https://onlinelibrary.wiley.com/doi
 # 2004: durbin model, 2007: lag model, 2011: slx model, 2014: error model
 
 # Get best models (based on AIC and Log Likekihood)
-bestSar <- lapply(1:length(pneuNames), function(x) {rownames(sarResults[[x]])[c(1:6,8)][which.min(sarResults[[x]]$aic[c(1:6,8)])]}) # No GNS or sDEM (Overfitting)
+bestSar <- lapply(1:length(pneuNames), function(x) {rownames(sarResults[[x]])[c(1:6,8)][which.min(sarResults[[x]]$aic[c(1:5,8)])]}) # No GNS or sDEM (Overfitting)
 bestSar
 
 # Selected Models
