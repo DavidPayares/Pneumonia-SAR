@@ -421,6 +421,10 @@ lag11 <- lagsarlm(as.formula(olsModels$pneu11), pneuShp$pneu11, nb2listw(kn4W$pn
 erd14 <- errorsarlm(as.formula(olsModels$pneu14), pneuShp$pneu14, nb2listw(queenW$pneu14), Durbin = ~ TEM + CPM + NUT + CVV + IPSE + VAC + NBI)
 sarReg <- list(erd04, ols07, lag11, erd14)
 
+
+LR.sarlm(lm(as.formula(olsModels[[1]]), data = pneuShp[[1]]), erd04)
+
+
 # Models summary
 lapply(sarReg, function(x) {summary(x, Nagelkerke=T, Hausman = T)})
 
