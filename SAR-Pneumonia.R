@@ -467,6 +467,7 @@ impactModels <- lapply(c(1,3:4), function (x) {summary(impacts(sarReg[[x]], list
 names(impactModels) <- pneuNames[c(1,3:4)]
 impactModels
 
+impacts(sarReg[[1]], listw = nb2listw(get(spatialW[[3]])[[3]]))
 
 # Save variables
 save.image("~/Pneumonia/Pnuemonia/Peunomia.RData")
