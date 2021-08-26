@@ -5,7 +5,7 @@ output:
   html_document:
     theme: readable
     highlight: tango
-    keep_md: yes
+    keep_md: no
     toc: true
     toc_float:
       collapsed: true
