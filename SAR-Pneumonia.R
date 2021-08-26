@@ -16,7 +16,6 @@ for(p in packages){
 }
 
 
-
 # Set working directory
 dir <- '/mnt/d/M.Sc. Gesopatial Tecnologies/GeoMundus/GeoMundus 2019/Neumonia'
 setwd(file.path(dir))
