@@ -209,9 +209,18 @@ for (y in 1:length(pneuNames)){
 par(resetPar())
 op=par(mfrow=c(4,4), mar=c(4,4,1,1),oma=c(1,1,1,1))
 for (col in c(78:87, 89:91)){
-  mi <- moranbi.test(pneuShp$pneu11$SMR, pneuShp$pneu11[[col]], nb2listw(get(spatialW[[3]])[[3]]), N= 999)
-  moranbi.plot(pneuShp$pneu11$SMR, pneuShp$pneu11[[col]], nb2listw(get(spatialW[[3]])[[3]]), N= 999,graph=T, quiet = T, main = paste0('I = ', round(mi$Observed,3), ', p-value = ', mi$p.value), xlab = 'SMR', ylab = colnames(pneuShp$pneu11[col])[1], cex.main=0.9)
+  mi <- moranbi.test_2(pneuShp$pneu14$SMR, pneuShp$pneu14[[col]], nb2listw(get(spatialW[[4]])[[4]]), N= 999, zero.policy = TRUE)
+  moranbi.plot(pneuShp$pneu14$SMR, pneuShp$pneu14[[col]], nb2listw(get(spatialW[[4]])[[4]]), N= 999,graph=T, quiet = T, main = paste0('I = ', round(mi$Observed,3), ', p-value = ', mi$p.value), xlab = 'SMR', ylab = colnames(pneuShp$pneu11[col])[1], cex.main=0.9)
 } # For 2014 (For other years the variables need to be adressed for each dataset, that is, pneu'year'.  e.g., pneu07)
+
+
+# Bivariate Moran's I (p-value and plot)
+par(resetPar())
+op=par(mfrow=c(4,4), mar=c(4,4,1,1),oma=c(1,1,1,1))
+for (col in c(78:87, 89:91)){
+  mi <- moranbi.test(pneuShp$pneu14$SMR, pneuShp$pneu14[[col]], nb2listw(get(spatialW[[4]])[[4]]), N= 999, zero.policy = TRUE)
+  moranbi.plot(pneuShp$pneu14$SMR, pneuShp$pneu14[[col]], nb2listw(get(spatialW[[4]])[[4]]), N= 999,graph=T, quiet = T, main = paste0('I = ', round(mi$Observed,3), ', p-value = ', mi$p.value), xlab = 'SMR', ylab = colnames(pneuShp$pneu11[col])[1], cex.main=0.9)
+} 
 
 # 2004: TEM, CPM, CVV, ESC.
 # 2007: NUT, IPSE
@@ -360,7 +369,11 @@ logFormula07 <- gsub("ESC", "log(ESC)", logFormula07)
 logFormula07 <- gsub("IPSE", "log(IPSE)", logFormula07)
 
 olsModels$pneu07 <- logFormula07
-olslm$pneu07 <- lm(as.formula(logFormula07), data = pneuShp$pneu07)
+olslm$pneu07 <- lm(as.formula(olsModels$pneu07), data = pneuShp$pneu07)
+
+# Check another model for 2011
+#olsModels$pneu11 <- "SMR ~ CVD + IPSE"
+#olslm$pneu11 <- lm(as.formula(olsModels$pneu11), data = pneuShp$pneu11)
 
 # Normality test
 shapiro.test(residuals(olslm$pneu07)) #normal
