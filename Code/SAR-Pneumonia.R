@@ -6,9 +6,9 @@
 
 
 packages <- c('lmtest','RColorBrewer','classInt','spdep','TeachingDemos','shapefiles','sp','maptools',
-             'scatterplot3d','geoR','spatial','fBasics','car','aplpack','RODBC','ggplot2','spgrass6',
+             'scatterplot3d','geoR','spatial','fBasics','car','aplpack','RODBC','ggplot2',
              'adespatial','RANN','ade4','olsrr','rgeos','rgdal','spdep','spgwr','GWmodel','nnet','olsrr',
-             'stats','classInt','gridExtra','lmtest','spatialreg','car','MASS','caret','glmnet')
+             'stats','classInt','gridExtra','lmtest','spatialreg','car','MASS','caret','glmnet', 'corrplot')
 
 for(p in packages){
   if(!require(p,character.only = TRUE)) install.packages(p, dependencies = TRUE)
@@ -17,11 +17,11 @@ for(p in packages){
 
 
 # Set working directory
-dir <- '/mnt/d/M.Sc. Gesopatial Tecnologies/GeoMundus/GeoMundus 2019/Neumonia'
+dir <- 'C:/Users/PayaresGarciaDE/Documents/PK/Pneumonia-SAR'
 setwd(file.path(dir))
 
 # Load some useful functions
-funDir <- file.path(dir, 'SpatialFunctions')
+funDir <- file.path(dir, 'Code/SpatialFunctions')
 spFun <- list.files(funDir, pattern = '.r', full.names = T)
 invisible(lapply(spFun, source))
 
@@ -35,12 +35,30 @@ resetPar <- function() { dev.new(); op <- par(no.readonly = TRUE); dev.off(); op
 
 # Load Data
 years <- list('04','07','11','14')
-pneuData <- paste0(dir, '/SHPFinal/Neumonia', years, '.shp')
+pneuData <- paste0(dir, '/Data/Neumonia', years, '.shp')
 
 # read Data
 pneuShp <- lapply(pneuData, st_read)
 pneuNames <- as.character(paste0('pneu',years))
 names(pneuShp) <- pneuNames
+
+##################################################
+#              Exploratoty analysis              #
+##################################################
+
+
+# Normality
+par(mfrow = c(2,2))
+for (year in 1:length(years)){
+  hist(pneuShp2[[year]]$SMR, main = paste0('20', years[[year]]), prob = T, xlab = 'SMR')
+  lines(density(pneuShp2[[year]]$SMR), col = 'red')
+  normality <- shapiro.test(pneuShp2[[year]]$SMR)
+  print(normality)
+  print(summary(pneuShp2[[year]]$SMR))
+}
+
+
+# Correlation
 
 ##################################################
 #             Contiguity Matrices                #
@@ -97,6 +115,17 @@ for (w in matrices){
   plot(get(paste0(w, 'W'))$pneu04, coords$pneu04, add=T,  pch=20, cex.main=1.5, frame.plot=FALSE , col="gray25")
   title(w)
 }
+
+op=par(mfrow=c(2,2), oma=c(0,0,0,0), mar=c(1,1,1,1))
+plot(st_geometry(pneuShp$pneu04), border = 'gray', main = '2004')
+plot(queenW$pneu04, coords$pneu04, add = T, pch=20, cex.main=1.5, frame.plot=FALSE , col="gray25")
+plot(st_geometry(pneuShp$pneu04), border = 'gray', main = '2007')
+plot(kn2W$pneu07, coords$pneu07, add = T, pch=20, cex.main=1.5, frame.plot=FALSE , col="gray25")
+plot(st_geometry(pneuShp$pneu04), border = 'gray', main = '2011')
+plot(kn4W$pneu11, coords$pneu11, add = T, pch=20, cex.main=1.5, frame.plot=FALSE , col="gray25")
+plot(st_geometry(pneuShp$pneu04), border = 'gray', main = '2014')
+plot(queenW$pneu14, coords$pneu14, add = T, pch=20, cex.main=1.5, frame.plot=FALSE , col="gray25")
+
 
 
 ## Spatial weights matrices PCNM
@@ -186,13 +215,15 @@ pneuShp$pneu11$lag3SMR <- lag.listw(nb2listw(lagKn4W3, style = 'W'), pneuShp$pne
 
 ## Global Analysis
 
+moranI <- lapply(1:length(pneuNames), function(x) {moran.test(pneuShp[[x]]$SMR, nb2listw(get(spatialW[[x]])[[x]]))})
+
 # Moran's I
 moranI <- lapply(1:length(pneuNames), function(x) {moran.test(pneuShp[[x]]$SMR, nb2listw(get(spatialW[[x]])[[x]]))})
 names(moranI) <- pneuNames
 moranI
 
 # Getid's Ord
-getisO <- lapply(1:length(pneuNames), function(x) {globalG.test(pneuShp[[x]]$SMR, nb2listw(get(spatialW[[x]])[[x]], style = 'B'))})
+getisO <- lapply(1:length(pneuNames), function(x) {globalG.test(pneuShp[[x]]$SMR,  nb2listw(get(spatialW[[x]])[[x]], style = 'B'))})
 names(getisO) <- pneuNames
 getisO
 
@@ -213,8 +244,15 @@ for (col in c(78:87, 89:91)){
   moranbi.plot(pneuShp$pneu14$SMR, pneuShp$pneu14[[col]], nb2listw(get(spatialW[[4]])[[4]]), N= 999,graph=T, quiet = T, main = paste0('I = ', round(mi$Observed,3), ', p-value = ', mi$p.value), xlab = 'SMR', ylab = colnames(pneuShp$pneu11[col])[1], cex.main=0.9)
 } # For 2014 (For other years the variables need to be adressed for each dataset, that is, pneu'year'.  e.g., pneu07)
 
+# Moran's I covariates (p-value and plot)
+par(resetPar())
+op=par(mfrow=c(4,4), mar=c(4,4,1,1),oma=c(1,1,1,1))
+for (col in c(89)){
+  mi <- moran.test(pneuShp$pneu04[[col]], nb2listw(get(spatialW[[1]])[[1]]))
+  moran.plot(pneuShp$pneu04[[col]], nb2listw(get(spatialW[[1]])[[1]]), main = paste0('I = ', round(mi$statistic,3), ', p-value = ', round(mi$p.value , 4)), xlab = colnames(pneuShp$pneu04[col])[1],  ylab = paste0('Spatially lagged ', colnames(pneuShp$pneu04[col])[1]), cex.main=0.9)
+} # For 2014 (For other years the variables need to be adressed for each dataset, that is, pneu'year'.  e.g., pneu07)
 
-# Bivariate Moran's I (p-value and plot)
+6# Bivariate Moran's I (p-value and plot)
 par(resetPar())
 op=par(mfrow=c(4,4), mar=c(4,4,1,1),oma=c(1,1,1,1))
 for (col in c(78:87, 89:91)){
@@ -349,17 +387,27 @@ invisible(lapply(1:length(pneuNames), function (x){
   plot(lmyear, which=c(1), main = paste0('20', years[[x]]))
   # Residuals normality: Shapiro Wilk test
   normality <- shapiro.test(residuals(lmyear))
+  print(normality)
   if (normality$p.value >= 0.05) {cat('Normal\n')} else {cat('non-normal\n')}
   # Heteroscedasticity: Breusch Pagan test
   homos <- bptest(lmyear)
+  print(homos)
   if (homos$p.value >= 0.05) {cat('Homocedastic\n')} else {cat('Heteroscedastic\n')}
   # Specificity: Ramsey's RESET test
   specif <- resettest(lmyear)
+  print(specif)
   if (specif$p.value >= 0.05) {cat('Good specified\n')} else {cat('Poorly specified\n')}
   # Multicolineality: VIF
   vif <- vif(lmyear)
+  #barplot(vif, main = paste0('20', years[[x]]), horiz = TRUE, col = "gray" , cex.names = 0.6)
+  #abline(v = 10, lwd = 3, lty = 2) 
   if (length(vif[vif > 10]) > 0) {cat('Multicolinearity\n')} else {cat('Non-multicolinearity\n')}
 }))  # 2007 suffers of non-normality
+
+
+# Multicolinearity
+dataCor <- st_drop_geometry(pneuShp$pneu04[,c('IDD','DEP','CVV', 'ESC','NBI','lag3SMR')])
+corrplot(cor(dataCor), method='number')   
 
 # Correct non-normality 2007
 
@@ -413,6 +461,8 @@ sarModels <- function(lm, data, listw){
   
   statLag <- lapply(sarModels, function(x){val <- cbind(aic = AIC(x), loglik = logLik(x)[[1]]); return(val)})
   statLag <- as.data.frame(do.call(rbind, statLag), row.names = c('lag','error','slx', 'durbin','sac','erdur','gns','ols'))
+  pa <- lapply(sarModels, function(x) {if (class(x)[1] %in% c('SlX','lm')) {summary(x, Nagelkerke=T, Hausman = T)$adj.r.squared} else { summary(x, Nagelkerke=T, Hausman = T)$NK}})
+  print(pa)
   return(statLag)
 }
 
@@ -421,9 +471,10 @@ sarResults <- lapply(1:length(pneuNames), function (x) {sarModels(olsModels[[x]]
 names(sarResults) <- pneuNames
 sarResults # GNS are overfitted models (see. https://onlinelibrary.wiley.com/doi/10.1111/jors.12188)
 # 2004: durbin model, 2007: lag model, 2011: slx model, 2014: error model
+# sac, ols, slx , slx
 
 # Get best models (based on AIC and Log Likekihood)
-bestSar <- lapply(1:length(pneuNames), function(x) {rownames(sarResults[[x]])[c(1:6,8)][which.min(sarResults[[x]]$aic[c(1:5,8)])]}) # No GNS or sDEM (Overfitting)
+bestSar <- lapply(1:length(pneuNames), function(x) {rownames(sarResults[[x]])[c(1:5,8)][which.min(sarResults[[x]]$aic[c(1:5,8)])]}) # No GNS or sDEM (Overfitting)
 bestSar
 
 # Selected Models
@@ -433,6 +484,8 @@ lag11 <- lagsarlm(as.formula(olsModels$pneu11), pneuShp$pneu11, nb2listw(kn4W$pn
 erd14 <- errorsarlm(as.formula(olsModels$pneu14), pneuShp$pneu14, nb2listw(queenW$pneu14), Durbin = ~ TEM + CPM + NUT + CVV + IPSE + VAC + NBI)
 sarReg <- list(erd04, ols07, lag11, erd14)
 
+
+slxSar <- lmSLX(as.formula(olsModels$pneu14), pneuShp$pneu14, nb2listw(queenW$pneu14), Durbin = ~ TEM + CPM + NUT + CVV + IPSE + VAC + NBI)
 
 LR.sarlm(lm(as.formula(olsModels[[1]]), data = pneuShp[[1]]), erd04)
 
