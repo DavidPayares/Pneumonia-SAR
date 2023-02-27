@@ -50,11 +50,12 @@ names(pneuShp) <- pneuNames
 # Normality
 par(mfrow = c(2,2))
 for (year in 1:length(years)){
-  hist(pneuShp2[[year]]$SMR, main = paste0('20', years[[year]]), prob = T, xlab = 'SMR')
-  lines(density(pneuShp2[[year]]$SMR), col = 'red')
-  normality <- shapiro.test(pneuShp2[[year]]$SMR)
+  hist(pneuShp[[year]]$SMR, main = paste0('20', years[[year]]), prob = T, xlab = 'SMR')
+  lines(density(pneuShp[[year]]$SMR), col = 'red')
+  normality <- shapiro.test(pneuShp[[year]]$SMR)
   print(normality)
-  print(summary(pneuShp2[[year]]$SMR))
+  print(sd(pneuShp[[year]]$SMR))
+  print(summary(pneuShp[[year]]$SMR))
 }
 
 
